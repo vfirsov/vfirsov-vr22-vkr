@@ -1,0 +1,51 @@
+---
+title: "2 · WooCommerce — плагин WordPress на своём хостинге · итог 3,7 (Л3 У3 И3 Г5 А3 С5)"
+---
+flowchart TB
+  classDef actor fill:#ffffff,stroke:#2a253e,stroke-width:1.5px,color:#171520
+  classDef core fill:#2a253e,stroke:#2a253e,color:#ffffff
+  classDef comp fill:#ffffff,stroke:#b4b8c6,color:#171520
+  classDef own fill:#ffffff,stroke:#2a253e,stroke-dasharray:5 4,color:#171520
+  classDef block fill:#fdeeee,stroke:#c0392b,color:#8e1f15
+
+  buyer["<b>Покупатель</b><br/>каталог, заказ, оплата"]:::actor
+  staff["<b>Сотрудники магазина</b><br/>каталог, остатки, заказы"]:::actor
+
+  subgraph host["СВОЙ ХОСТИНГ · VPS, можно в РФ"]
+    web["<b>Nginx + PHP-FPM</b><br/>TLS"]:::comp
+    subgraph wp["WordPress"]
+      theme["<b>Тема витрины</b><br/>PHP-шаблоны, блоки"]:::comp
+      wpadmin["<b>wp-admin</b><br/>админ-панель WordPress"]:::comp
+      woo["<b>WooCommerce</b><br/>каталог, корзина, заказы, остатки"]:::core
+      plugins["<b>Сторонние плагины</b><br/>фильтры, ЮKassa, СДЭК, обмен с 1С"]:::comp
+    end
+    db[("<b>MySQL / MariaDB</b><br/>wp_posts, wp_postmeta,<br/>таксономии атрибутов pa_*")]:::comp
+    media["<b>Медиатека</b><br/>wp-content/uploads"]:::comp
+  end
+
+  subgraph rf["СЕРВИСЫ РФ"]
+    pay["<b>Платёжный шлюз</b><br/>карты «Мир», СБП"]:::comp
+    ofd["<b>Онлайн-касса и ОФД</b><br/>чеки по 54-ФЗ"]:::comp
+    dlv["<b>Служба доставки</b><br/>СДЭК"]:::comp
+    onec["<b>1С</b><br/>учёт"]:::comp
+  end
+
+  blk["<b>Блокеры</b><br/>атрибуты чая — EAV в wp_postmeta,<br/>фильтры замедляются с ростом каталога<br/>партии и год урожая не выражаются<br/>интеграции РФ — только сторонние плагины<br/>обновления и безопасность — на магазине"]:::block
+
+  buyer -->|HTTPS| web
+  staff -->|HTTPS| web
+  web --> theme
+  web --> wpadmin
+  theme --> woo
+  wpadmin --> woo
+  woo --> db
+  woo --> media
+  woo -->|хуки WordPress| plugins
+  plugins -.->|плагин ЮKassa| pay
+  plugins -.->|чеки через ЮKassa| ofd
+  plugins -.->|плагин СДЭК| dlv
+  plugins -.->|CommerceML, плагин| onec
+
+  style host fill:#f3f3f7,stroke:#dcdde5,color:#706c7e
+  style wp fill:#e9e9f0,stroke:#dcdde5,color:#706c7e
+  style rf fill:#f3f3f7,stroke:#dcdde5,color:#706c7e

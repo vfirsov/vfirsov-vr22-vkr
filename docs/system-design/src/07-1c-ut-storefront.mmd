@@ -1,0 +1,50 @@
+---
+title: "7 · 1С:Управление торговлей + типовая витрина · итог 4,0 (Л5 У5 И5 Г3 А4 С2)"
+---
+flowchart TB
+  classDef actor fill:#ffffff,stroke:#2a253e,stroke-width:1.5px,color:#171520
+  classDef core fill:#2a253e,stroke:#2a253e,color:#ffffff
+  classDef comp fill:#ffffff,stroke:#b4b8c6,color:#171520
+  classDef own fill:#ffffff,stroke:#2a253e,stroke-dasharray:5 4,color:#171520
+  classDef block fill:#fdeeee,stroke:#c0392b,color:#8e1f15
+
+  buyer["<b>Покупатель</b><br/>каталог, заказ, оплата"]:::actor
+  staff["<b>Сотрудники магазина</b><br/>учёт, склад, заказы"]:::actor
+
+  subgraph site["ТИПОВАЯ ВИТРИНА · отдельный продукт и лицензия"]
+    store["<b>Сайт</b><br/>1С-Битрикс, InSales и т. п."]:::comp
+    sitedb[("<b>БД сайта</b><br/>копия каталога, цен и остатков")]:::comp
+  end
+
+  subgraph onec["1С:УПРАВЛЕНИЕ ТОРГОВЛЕЙ 11 · свой сервер или 1С:Фреш"]
+    client["<b>Клиент 1С</b><br/>тонкий клиент, веб-клиент"]:::comp
+    ut["<b>Конфигурация УТ</b><br/>номенклатура, характеристики, серии — партии<br/>склады, остатки, резервы, заказы, цены, отчёты"]:::core
+    srv[("<b>Сервер 1С:Предприятие 8.3</b><br/>СУБД PostgreSQL или MS SQL")]:::comp
+    kkt["<b>Подключаемое оборудование</b><br/>ККТ, сканер штрих-кодов"]:::comp
+  end
+
+  subgraph rf["СЕРВИСЫ РФ"]
+    pay["<b>Платёжный шлюз</b><br/>карты «Мир», СБП"]:::comp
+    ofd["<b>Онлайн-касса и ОФД</b><br/>чеки по 54-ФЗ"]:::comp
+    dlv["<b>Служба доставки</b><br/>СДЭК"]:::comp
+  end
+
+  blk["<b>Блокеры</b><br/>обмен по расписанию — синхронного резерва нет,<br/>сайт может продать отсутствующую позицию<br/>витрину делают и сопровождают отдельно<br/>лицензии 1С и витрины складываются"]:::block
+
+  buyer -->|HTTPS| store
+  store --> sitedb
+  staff --> client
+  client --> ut
+  ut --> srv
+  ut --> kkt
+  sitedb <-.->|"CommerceML 2 по расписанию:<br/>каталог, цены, остатки → сайт<br/>заказы → 1С"| ut
+  store -->|платёж на сайте| pay
+  kkt -->|чеки| ofd
+  ut -.->|модуль службы доставки| dlv
+  srv ~~~ pay
+  srv ~~~ dlv
+
+  linkStyle 6 stroke:#c0392b,stroke-width:1.5px,color:#c0392b
+  style site fill:#f3f3f7,stroke:#dcdde5,color:#706c7e
+  style onec fill:#f3f3f7,stroke:#dcdde5,color:#706c7e
+  style rf fill:#f3f3f7,stroke:#dcdde5,color:#706c7e

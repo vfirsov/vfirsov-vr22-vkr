@@ -1,0 +1,51 @@
+---
+title: "6 · 1С-Битрикс: Управление сайтом — коробочная CMS · итог 3,7 (Л5 У4 И5 Г3 А3 С2)"
+---
+flowchart TB
+  classDef actor fill:#ffffff,stroke:#2a253e,stroke-width:1.5px,color:#171520
+  classDef core fill:#2a253e,stroke:#2a253e,color:#ffffff
+  classDef comp fill:#ffffff,stroke:#b4b8c6,color:#171520
+  classDef own fill:#ffffff,stroke:#2a253e,stroke-dasharray:5 4,color:#171520
+  classDef block fill:#fdeeee,stroke:#c0392b,color:#8e1f15
+
+  buyer["<b>Покупатель</b><br/>каталог, заказ, оплата"]:::actor
+  staff["<b>Сотрудники магазина</b><br/>каталог, остатки, заказы"]:::actor
+
+  subgraph host["СВОЙ СЕРВЕР В РФ · «Битрикс: Веб-окружение»"]
+    web["<b>Nginx + Apache, PHP</b><br/>TLS"]:::comp
+    tpl["<b>Шаблон сайта</b><br/>компоненты каталога и корзины"]:::comp
+    adm["<b>Админ-панель</b><br/>/bitrix/admin"]:::comp
+    core["<b>Модули 1С-Битрикс</b><br/>Инфоблоки — атрибуты чая как «свойства»<br/>Торговый каталог — цены, склады, остатки<br/>Интернет-магазин — корзина, заказы,<br/>платёжные системы, онлайн-кассы"]:::core
+    db[("<b>MySQL</b><br/>элементы и свойства инфоблоков,<br/>заказы, остатки")]:::comp
+    files["<b>/upload</b><br/>изображения товаров"]:::comp
+    xch["<b>Обмен с 1С</b><br/>CommerceML 2"]:::comp
+  end
+
+  subgraph rf["СЕРВИСЫ РФ"]
+    pay["<b>Платёжный шлюз</b><br/>карты «Мир», СБП"]:::comp
+    ofd["<b>Онлайн-касса и ОФД</b><br/>чеки по 54-ФЗ"]:::comp
+    dlv["<b>Служба доставки</b><br/>СДЭК"]:::comp
+    onec["<b>1С</b><br/>учёт"]:::comp
+  end
+
+  blk["<b>Блокеры</b><br/>лицензия редакции, ежегодное продление<br/>и платные модули Marketplace — стоимость 2 из 5<br/>модель чая ложится на «свойства» инфоблоков<br/>партионный учёт не выражается<br/>доработки — только на API Битрикса"]:::block
+
+  buyer -->|HTTPS| web
+  staff -->|HTTPS| web
+  web --> tpl
+  web --> adm
+  tpl --> core
+  adm --> core
+  core --> db
+  core --> files
+  core --> xch
+  core -->|платёжная система| pay
+  core -->|онлайн-касса| ofd
+  core -.->|модуль Marketplace| dlv
+  xch -.->|CommerceML 2 по расписанию| onec
+  db ~~~ pay
+  db ~~~ ofd
+  db ~~~ dlv
+
+  style host fill:#f3f3f7,stroke:#dcdde5,color:#706c7e
+  style rf fill:#f3f3f7,stroke:#dcdde5,color:#706c7e

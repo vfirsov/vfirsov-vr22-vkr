@@ -1,0 +1,46 @@
+---
+title: "4 · InSales — отечественный SaaS-конструктор · итог 4,0 (Л5 У4 И5 Г3 А4 С3)"
+---
+flowchart TB
+  classDef actor fill:#ffffff,stroke:#2a253e,stroke-width:1.5px,color:#171520
+  classDef core fill:#2a253e,stroke:#2a253e,color:#ffffff
+  classDef comp fill:#ffffff,stroke:#b4b8c6,color:#171520
+  classDef own fill:#ffffff,stroke:#2a253e,stroke-dasharray:5 4,color:#171520
+  classDef block fill:#fdeeee,stroke:#c0392b,color:#8e1f15
+
+  buyer["<b>Покупатель</b><br/>каталог, заказ, оплата"]:::actor
+  staff["<b>Сотрудники магазина</b><br/>каталог, остатки, заказы"]:::actor
+
+  subgraph saas["INSALES · SaaS, ЦОД в РФ"]
+    store["<b>Витрина</b><br/>тема на шаблонах Liquid"]:::comp
+    bo["<b>Бэк-офис</b><br/>веб и мобильное приложение"]:::comp
+    core["<b>Ядро платформы</b><br/>товары, модификации, «параметры»<br/>склады, остатки, заказы, клиенты"]:::core
+    integ["<b>Встроенные интеграции</b><br/>платежи, доставка, онлайн-касса, 1С"]:::comp
+    api["<b>REST API</b><br/>вебхуки, магазин приложений"]:::comp
+  end
+
+  ext["<b>Внешнее приложение</b><br/>своя логика на своём сервере:<br/>партии, правила резерва"]:::own
+
+  subgraph rf["СЕРВИСЫ РФ"]
+    pay["<b>Платёжный шлюз</b><br/>карты «Мир», СБП"]:::comp
+    ofd["<b>Онлайн-касса и ОФД</b><br/>чеки по 54-ФЗ"]:::comp
+    dlv["<b>Служба доставки</b><br/>СДЭК"]:::comp
+    onec["<b>1С</b><br/>учёт"]:::comp
+  end
+
+  blk["<b>Блокеры</b><br/>атрибуты чая — через механизм «параметров»<br/>партионный учёт не выражается<br/>своя бизнес-логика — только вне платформы, через API<br/>стоимость растёт с числом пользователей и SKU"]:::block
+
+  buyer -->|HTTPS| store
+  staff -->|HTTPS| bo
+  store --> core
+  bo --> core
+  core --> integ
+  core --> api
+  api <-->|REST, вебхуки| ext
+  integ -->|платёж| pay
+  integ -->|чеки| ofd
+  integ -->|задания, статусы| dlv
+  integ -.->|CommerceML| onec
+
+  style saas fill:#f3f3f7,stroke:#dcdde5,color:#706c7e
+  style rf fill:#f3f3f7,stroke:#dcdde5,color:#706c7e

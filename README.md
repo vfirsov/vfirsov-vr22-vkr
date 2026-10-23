@@ -40,6 +40,8 @@ flowchart LR
 
 Пунктир — интеграции, которые в прототипе реализованы не полностью.
 
+Схемы всех вариантов реализации из анализа аналогов (Shopify, WooCommerce, InSales, 1С и др.) — в [`docs/system-design/`](docs/system-design/).
+
 ## Стек и требования
 
 Python, Flask, SQLAlchemy, PostgreSQL, Vue.js, Bootstrap; сервер — Ubuntu 22.04, Nginx, Gunicorn, Docker.

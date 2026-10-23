@@ -1,0 +1,64 @@
+---
+title: "8 · Собственная разработка — проект ВКР · итог 4,8 (Л5 У5 И5 Г5 А4 С5)"
+---
+flowchart TB
+  classDef actor fill:#ffffff,stroke:#2a253e,stroke-width:1.5px,color:#171520
+  classDef core fill:#2a253e,stroke:#2a253e,color:#ffffff
+  classDef comp fill:#ffffff,stroke:#b4b8c6,color:#171520
+  classDef own fill:#ffffff,stroke:#2a253e,stroke-dasharray:5 4,color:#171520
+  classDef plan fill:#ffffff,stroke:#b4b8c6,stroke-dasharray:5 4,color:#706c7e
+
+  buyer["<b>Покупатель</b><br/>каталог, заказ, оплата, статус"]:::actor
+  staff["<b>Сотрудники магазина</b><br/>каталог, остатки, заказы"]:::actor
+
+  spa["<b>Браузер · SPA на Vue.js</b><br/>Bootstrap, fetch, адаптив от 360 px"]:::comp
+
+  subgraph srv["СЕРВЕР В РФ · Ubuntu Server, Docker"]
+    proxy["<b>Nginx + Gunicorn</b><br/>обратный прокси, TLS 1.2+, WSGI"]:::comp
+    subgraph api["REST API · Python, Flask"]
+      auth["<b>Auth</b><br/>JWT, bcrypt/argon2, RBAC"]:::comp
+      catalog["<b>Catalog</b><br/>атрибуты чая,<br/>фильтры и поиск"]:::comp
+      orders["<b>Orders</b><br/>корзина, резерв остатка<br/>в транзакции, статусы"]:::core
+      payments["<b>Payments</b><br/>инициация платежа,<br/>проверка подписи"]:::comp
+      delivery["<b>Delivery</b><br/>задание службе,<br/>приём статусов"]:::comp
+      admin["<b>Админ-панель</b><br/>Flask-Admin"]:::comp
+    end
+    db[("<b>PostgreSQL</b><br/>товары и партии, остатки, заказы,<br/>клиенты, платежи · 3 НФ, pg_dump")]:::comp
+    files["<b>Хранилище файлов</b><br/>изображения на диске,<br/>путь в БД"]:::comp
+    subgraph adapters["Адаптеры внешних систем"]
+      apay["<b>Платёжный шлюз</b>"]:::comp
+      afis["<b>Фискальный регистратор</b>"]:::comp
+      adlv["<b>Служба доставки</b>"]:::comp
+      acml["<b>Обмен CommerceML 2</b>"]:::comp
+    end
+  end
+
+  next["<b>План при росте выше 150 RPS</b><br/>Redis-кэш фильтров, CDN для статики,<br/>переход на ASGI"]:::plan
+
+  subgraph rf["СЕРВИСЫ РФ"]
+    pay["<b>Платёжный шлюз</b><br/>карты «Мир», СБП"]:::comp
+    ofd["<b>Онлайн-касса и ОФД</b><br/>чеки по 54-ФЗ"]:::comp
+    dlv["<b>Служба доставки</b><br/>СДЭК"]:::comp
+    onec["<b>1С</b><br/>учёт"]:::comp
+  end
+
+  buyer --> spa
+  spa -->|HTTPS · REST/JSON| proxy
+  staff -->|HTTPS| proxy
+  proxy --> api
+  api -->|SQLAlchemy ORM| db
+  catalog --> files
+  payments --> apay
+  payments --> afis
+  delivery --> adlv
+  orders --> acml
+  apay <-->|"платёж · уведомление с подписью"| pay
+  afis -->|чеки| ofd
+  adlv <-->|"задание · статусы"| dlv
+  acml -.->|"каталог, остатки, заказы"| onec
+  next -.- proxy
+
+  style srv fill:#f3f3f7,stroke:#dcdde5,color:#706c7e
+  style api fill:#e9e9f0,stroke:#dcdde5,color:#706c7e
+  style adapters fill:#e9e9f0,stroke:#dcdde5,color:#706c7e
+  style rf fill:#f3f3f7,stroke:#dcdde5,color:#706c7e

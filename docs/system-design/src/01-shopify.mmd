@@ -1,0 +1,49 @@
+---
+title: "1 · Shopify — зарубежный SaaS-конструктор · итог 3,5 (Л2 У4 И2 Г5 А5 С3)"
+---
+flowchart TB
+  classDef actor fill:#ffffff,stroke:#2a253e,stroke-width:1.5px,color:#171520
+  classDef core fill:#2a253e,stroke:#2a253e,color:#ffffff
+  classDef comp fill:#ffffff,stroke:#b4b8c6,color:#171520
+  classDef own fill:#ffffff,stroke:#2a253e,stroke-dasharray:5 4,color:#171520
+  classDef block fill:#fdeeee,stroke:#c0392b,color:#8e1f15
+
+  buyer["<b>Покупатель</b><br/>каталог, заказ, оплата"]:::actor
+  staff["<b>Сотрудники магазина</b><br/>каталог, остатки, заказы"]:::actor
+
+  subgraph saas["SHOPIFY · SaaS, ЦОД вне РФ"]
+    store["<b>Online Store + Checkout</b><br/>тема Liquid, CDN Shopify;<br/>оплата — только провайдеры из списка Shopify"]:::comp
+    admin["<b>Shopify Admin</b><br/>веб и мобильное приложение"]:::comp
+    core["<b>Ядро платформы</b><br/>Products · Metafields · Inventory<br/>Orders · Customers"]:::core
+    api["<b>Admin API</b><br/>GraphQL, вебхуки"]:::comp
+    apps["<b>App Store</b><br/>платные приложения:<br/>фильтры, доставка"]:::comp
+  end
+
+  mw["<b>Свой сервис-посредник</b><br/>custom app на своём сервере:<br/>доставка, обмен с 1С"]:::own
+
+  subgraph rf["СЕРВИСЫ РФ"]
+    pay["<b>Платёжный шлюз</b><br/>карты «Мир», СБП"]:::comp
+    ofd["<b>Онлайн-касса и ОФД</b><br/>чеки по 54-ФЗ"]:::comp
+    dlv["<b>Служба доставки</b><br/>СДЭК"]:::comp
+    onec["<b>1С</b><br/>учёт"]:::comp
+  end
+
+  blk["<b>Блокеры</b><br/>ПДн покупателей хранятся вне РФ — 152-ФЗ<br/>фискализации по 54-ФЗ нет<br/>«Мир» и СБП не поддерживаются<br/>обслуживание в РФ ограничено"]:::block
+
+  buyer -->|HTTPS| store
+  staff -->|HTTPS| admin
+  store --> core
+  admin --> core
+  core --> api
+  apps --> api
+  api -->|вебхуки| mw
+  mw -.->|задания, статусы| dlv
+  mw -.->|заказы| onec
+  store -.->|"✕ не подключается"| pay
+  core -.->|"✕ чеков нет"| ofd
+  mw ~~~ pay
+  mw ~~~ ofd
+
+  linkStyle 9,10 stroke:#c0392b,stroke-width:1.5px,color:#c0392b
+  style saas fill:#f3f3f7,stroke:#dcdde5,color:#706c7e
+  style rf fill:#f3f3f7,stroke:#dcdde5,color:#706c7e

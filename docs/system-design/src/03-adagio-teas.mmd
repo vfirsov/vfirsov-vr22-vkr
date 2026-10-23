@@ -1,0 +1,44 @@
+---
+title: "3 · Adagio Teas — закрытая система одного магазина, США · итог 2,2 (Л1 У5 И1 Г1 А4 С1)"
+---
+flowchart TB
+  classDef actor fill:#ffffff,stroke:#2a253e,stroke-width:1.5px,color:#171520
+  classDef core fill:#2a253e,stroke:#2a253e,color:#ffffff
+  classDef comp fill:#ffffff,stroke:#b4b8c6,color:#171520
+  classDef own fill:#ffffff,stroke:#2a253e,stroke-dasharray:5 4,color:#171520
+  classDef block fill:#fdeeee,stroke:#c0392b,color:#8e1f15
+
+  subgraph shop["ЧАЙНЫЙ МАГАЗИН"]
+    buyer["<b>Покупатель</b><br/>каталог, заказ, оплата"]:::actor
+    staff["<b>Сотрудники магазина</b><br/>каталог, остатки, заказы"]:::actor
+  end
+
+  subgraph adagio["ADAGIO TEAS · проприетарная платформа, США; устройство закрыто, показано обобщённо"]
+    ustore["<b>Витрина adagio.com</b><br/>расширенные карточки чая,<br/>фильтр по вкусу, рекомендации"]:::comp
+    ucore["<b>Внутренние системы</b><br/>каталог, склад, заказы, фулфилмент"]:::core
+    usvc["<b>Провайдеры США</b><br/>платежи в USD, доставка по США"]:::comp
+  end
+
+  req["<b>Требования к своей системе</b><br/>F-03 поиск по типу, региону<br/>и вкусовым свойствам"]:::own
+
+  subgraph rf["СЕРВИСЫ РФ"]
+    pay["<b>Платёжный шлюз</b><br/>карты «Мир», СБП"]:::comp
+    ofd["<b>Онлайн-касса и ОФД</b><br/>чеки по 54-ФЗ"]:::comp
+    dlv["<b>Служба доставки</b><br/>СДЭК"]:::comp
+  end
+
+  blk["<b>Блокеры</b><br/>лицензирование сторонним магазинам недоступно<br/>нет API для чужого каталога и заказов<br/>российские платежи, доставка и 54-ФЗ<br/>не поддерживаются"]:::block
+
+  ustore --> ucore
+  ucore --> usvc
+  buyer -.->|"✕ витрина чужого магазина"| ustore
+  staff -.->|"✕ нет лицензии и API"| ucore
+  usvc -.->|"✕ не подключаются"| ofd
+  ustore -.->|заимствуем UX| req
+  usvc ~~~ pay
+  usvc ~~~ dlv
+
+  linkStyle 2,3,4 stroke:#c0392b,stroke-width:1.5px,color:#c0392b
+  style shop fill:#ffffff,stroke:#dcdde5,color:#706c7e
+  style adagio fill:#f3f3f7,stroke:#dcdde5,color:#706c7e
+  style rf fill:#f3f3f7,stroke:#dcdde5,color:#706c7e

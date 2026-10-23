@@ -1,0 +1,54 @@
+---
+title: "5 · RetailCRM + отдельная витрина · итог 4,0 (Л5 У3 И5 Г4 А4 С3)"
+---
+flowchart TB
+  classDef actor fill:#ffffff,stroke:#2a253e,stroke-width:1.5px,color:#171520
+  classDef core fill:#2a253e,stroke:#2a253e,color:#ffffff
+  classDef comp fill:#ffffff,stroke:#b4b8c6,color:#171520
+  classDef own fill:#ffffff,stroke:#2a253e,stroke-dasharray:5 4,color:#171520
+  classDef block fill:#fdeeee,stroke:#c0392b,color:#8e1f15
+
+  buyer["<b>Покупатель</b><br/>каталог, заказ, оплата"]:::actor
+  staff["<b>Сотрудники магазина</b><br/>заказы, клиенты, склад"]:::actor
+  channels["<b>Другие каналы</b><br/>телефон, мессенджеры, маркетплейсы"]:::actor
+
+  subgraph site["ВИТРИНА · отдельная система (CMS)"]
+    store["<b>Сайт магазина</b><br/>каталог, корзина, оформление"]:::comp
+    sitedb[("<b>БД сайта</b><br/>товары, атрибуты, копия остатков")]:::comp
+  end
+
+  subgraph crm["RETAILCRM · SaaS, ЦОД в РФ"]
+    comms["<b>Коммуникации</b><br/>чаты, телефония, рассылки"]:::comp
+    orders["<b>Заказы и клиенты</b><br/>статусы, триггеры, аналитика"]:::core
+    stock["<b>Каталог и склад</b><br/>товары из ICML-фида, остатки, резервы"]:::comp
+    mp["<b>Модули интеграций</b><br/>API v5, маркетплейс"]:::comp
+  end
+
+  subgraph rf["СЕРВИСЫ РФ"]
+    pay["<b>Платёжный шлюз</b><br/>карты «Мир», СБП"]:::comp
+    ofd["<b>Онлайн-касса и ОФД</b><br/>чеки по 54-ФЗ"]:::comp
+    dlv["<b>Служба доставки</b><br/>СДЭК"]:::comp
+    onec["<b>1С</b><br/>учёт"]:::comp
+  end
+
+  blk["<b>Блокеры</b><br/>витрину и каталог строят отдельно<br/>два источника данных о товаре<br/>атрибуты чая — параметры фида<br/>остатки на сайте — копия по расписанию"]:::block
+
+  buyer -->|HTTPS| store
+  staff -->|HTTPS| orders
+  channels --> comms
+  store --> sitedb
+  store -->|заказы, API| orders
+  comms --> orders
+  orders --> stock
+  orders --> mp
+  sitedb <-.->|"ICML-фид и остатки · по расписанию"| stock
+  store -->|платёж на сайте| pay
+  mp -->|чеки| ofd
+  mp -->|задания, статусы| dlv
+  mp -.->|модуль обмена| onec
+  mp ~~~ pay
+
+  linkStyle 8 stroke:#c0392b,stroke-width:1.5px,color:#c0392b
+  style site fill:#f3f3f7,stroke:#dcdde5,color:#706c7e
+  style crm fill:#f3f3f7,stroke:#dcdde5,color:#706c7e
+  style rf fill:#f3f3f7,stroke:#dcdde5,color:#706c7e
