@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RouterLink } from 'vue-router'
+useSeoMeta({ title: 'Лист — чайный магазин' })
 </script>
 
 <template>
@@ -8,8 +8,8 @@ import { RouterLink } from 'vue-router'
       <p class="eyebrow"><span class="short-rule" aria-hidden="true"></span>Чай. Время. Вы.</p>
       <h1 id="hero-title">Место для<br />хорошего <em>чая.</em></h1>
       <p class="hero-description">Для утра без спешки, разговоров по душам<br class="desktop-break" /> и пауз, которые хочется продлить.</p>
-      <RouterLink class="button button-primary" to="/catalog">Открыть каталог <span aria-hidden="true">↗</span></RouterLink>
-      <p class="quiet-note">Готовим нашу первую чайную коллекцию.</p>
+      <NuxtLink class="button button-primary" to="/catalog">Открыть каталог <span aria-hidden="true">↗</span></NuxtLink>
+      <p class="quiet-note">Знакомьтесь с нашей чайной коллекцией.</p>
     </div>
 
     <div class="tea-scene" role="img" aria-label="Иллюстрация: чашка чая и веточка с зелёными листьями">
@@ -44,7 +44,7 @@ import { RouterLink } from 'vue-router'
   <section class="welcome-strip" aria-labelledby="welcome-title">
     <div class="welcome-number" aria-hidden="true">01 /</div>
     <h2 id="welcome-title">Знакомство<br />с «Листом»</h2>
-    <p>Мы создаём чайный магазин, в котором будет легко найти свой вкус. Сейчас готовим каталог и продумываем детали. Скоро здесь начнётся ваша чайная история.</p>
+    <p>Мы создаём чайный магазин, в котором будет легко найти свой вкус. Знакомьтесь с коллекцией: от свежих зелёных чаёв до выдержанного пуэра. Здесь начинается ваша чайная история.</p>
     <span class="strip-leaf" aria-hidden="true">✳</span>
   </section>
 </template>

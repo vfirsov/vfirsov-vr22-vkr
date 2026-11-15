@@ -2,7 +2,7 @@
 
 Веб-система для чайного магазина: покупатель подбирает чай по типу, региону, обработке и вкусу и оформляет заказ, администратор ведёт ассортимент, остатки и заказы.
 
-Текущее состояние репозитория: материалы ВКР и основа frontend на Vue. Реализованы стартовая страница, пустой каталог и страница для неизвестного маршрута. Backend, база данных и оформление заказов пока не подключены; описание полной системы ниже задаёт целевой результат.
+Текущее состояние репозитория: материалы ВКР, frontend на Nuxt 4 с серверным рендерингом и отдельное API на Flask. Каталог читает 12 демонстрационных товаров из PostgreSQL через SQLAlchemy; реализованы таблицы категорий и товаров, миграция и начальное заполнение. БД подключена к API в Amvera через секрет `DATABASE_URL`. Заказы и авторизация не реализованы. Описание полной системы ниже задаёт целевой результат.
 
 > ВКР «Разработка информационной веб-системы для управления продажами и учёта ассортимента в чайном магазине», РАНХиГС, 09.03.03 «Прикладная информатика». Автор — Фирсов В. Д., руководитель — доц. Пономарёва Л. А. Текст работы — в [`docs/`](docs/).
 
@@ -32,9 +32,13 @@
 
 ## Демонстрация
 
-Demo frontend: [tea-shop-frontend-demo-vfirsov.msk1.amvera.tech](https://tea-shop-frontend-demo-vfirsov.msk1.amvera.tech). Развёртывание проверено по HTTPS: главная страница, SPA-маршруты, JS/CSS, `/healthz` и ответ API без backend.
+Демо-стенд состоит из трёх проектов Amvera, регион Москва (`msk1`):
 
-Проект Amvera: `tea-shop-frontend-demo`, регион Москва (`msk1`). Стенд показывает основу интерфейса; каталог пока пуст, покупки и вход недоступны.
+- **Frontend:** [tea-shop-frontend-demo-vfirsov.msk1.amvera.tech](https://tea-shop-frontend-demo-vfirsov.msk1.amvera.tech), проект `tea-shop-frontend-demo` — Nuxt 4 SSR. Проверки: [`/healthz`](https://tea-shop-frontend-demo-vfirsov.msk1.amvera.tech/healthz) → `200 {"status":"ok"}`, [`/catalog`](https://tea-shop-frontend-demo-vfirsov.msk1.amvera.tech/catalog) → HTML с 12 товарами из API.
+- **API:** [tea-shop-api-demo-vfirsov.msk1.amvera.tech](https://tea-shop-api-demo-vfirsov.msk1.amvera.tech), проект `tea-shop-api-demo` — Flask + Gunicorn. Проверки: [`/healthz`](https://tea-shop-api-demo-vfirsov.msk1.amvera.tech/healthz) → `200 {"status":"ok"}`, [`/api/catalog`](https://tea-shop-api-demo-vfirsov.msk1.amvera.tech/api/catalog) → `200`, 12 позиций.
+- **БД:** проект `vkr-demo`, PostgreSQL 17.5, база `vkr`, одна реплика. API подключается по внутреннему адресу `cnpg-vkr-demo-rw:5432`; внешнего домена БД нет. Загружены 7 категорий и 12 товаров.
+
+В новой версии frontend страница `/catalog` рендерится на сервере Nuxt и берёт товары из этого API.
 
 ## Архитектура
 
@@ -51,75 +55,99 @@ flowchart LR
 
 Пунктир — внешние интеграции из материалов ВКР. В текущем репозитории они не реализованы.
 
-Развёртываемая сейчас часть: браузер → HTTPS Amvera → Nginx → статическая сборка Vue. После появления backend Nginx сможет передавать запросы `/api/` во Flask.
+Текущий демо-контур — два независимых приложения Amvera:
+
+```mermaid
+flowchart LR
+  B[Браузер] -- HTTPS --> FE[Nuxt 4 SSR<br>tea-shop-frontend-demo]
+  FE -- "SSR-запрос,<br>NUXT_PUBLIC_API_BASE_URL" --> API[Flask + Gunicorn<br>tea-shop-api-demo]
+  B -- "клиентская навигация:<br>GET /api/catalog, CORS" --> API
+  API --> DB[(PostgreSQL)]
+```
+
+Страница `/catalog` рендерится на сервере: браузер получает готовый HTML. Первый запрос к API выполняет сервер Nuxt; при клиентской навигации каталог запрашивается браузером напрямую, поэтому API отдаёт CORS-заголовки на домен frontend.
 
 ## Стек и требования
 
-Frontend: Vue 3, TypeScript, Vue Router и Vite; пакетный менеджер npm, зависимости зафиксированы в `frontend/package-lock.json`. Для локальной разработки нужен Node.js 22.12 или новее. Контейнер собирает приложение на Node.js 24 и раздаёт результат через Nginx.
-
-Целевой backend из ВКР: Python, Flask, SQLAlchemy, PostgreSQL и Gunicorn. Его код и конфигурация пока отсутствуют.
+- **Frontend:** Nuxt 4 (Vue 3, TypeScript), серверный рендеринг на Nitro (`node-server`), пакетный менеджер npm, зависимости зафиксированы в `frontend/package-lock.json`. Для локальной разработки нужен Node.js 22.12 или новее; контейнер собирается на Node.js 24.
+- **Backend (демо):** Python 3.12, Flask 3, Gunicorn 27, SQLAlchemy 2 и Alembic. Каталог хранится в PostgreSQL и читается при каждом запросе.
 
 ## Конфигурация
 
-Для запуска frontend без backend переменные окружения не нужны.
+`NUXT_PUBLIC_API_BASE_URL` — базовый адрес Flask API в формате `http(s)://host[:port]`, без суффикса `/api/catalog`. Переменная задаётся в окружении контейнера или в переменных проекта Amvera; её значение доступно серверу Nuxt при SSR и браузеру при клиентской навигации (для таких запросов API отдаёт CORS-заголовки), секретом не является. Значение по умолчанию — `http://127.0.0.1:8080` (локальный Flask), оно задано в `frontend/nuxt.config.ts`; шаблон — `frontend/.env.example`. На демо-стенде переменная указывает на домен проекта API.
 
-`API_UPSTREAM` — необязательный адрес backend в формате `http://host[:port]` или `https://host[:port]`. Его нужно задавать в окружении контейнера или в переменных проекта Amvera. При запуске контейнера из него формируется конфигурация Nginx; адрес не встраивается в JavaScript при сборке. Префикс `/api/` при проксировании сохраняется. Без `API_UPSTREAM` контейнер отвечает на запросы `/api/` кодом `503` и JSON-сообщением о ненастроенном API.
-
-Frontend обращается к API через относительный путь `/api/`. Данные доступа к БД, ключи платёжных сервисов и другие секреты относятся к backend и не должны попадать в код браузера. Локальные `.env` и `.env.*` исключены из Git; шаблон `.env.example` при необходимости можно хранить в репозитории.
+Демо API требует только секретную `DATABASE_URL` с адресом PostgreSQL. Ключи платёжных сервисов и другие секреты относятся к целевому backend и не должны попадать в код браузера. Локальные `.env` и `.env.*` исключены из Git.
 
 ## Quick Start
 
-Команды выполняются из корня репозитория:
+Backend (терминал 1, из корня репозитория, нужен Python 3.12+):
+
+```sh
+python3 -m venv backend/.venv
+backend/.venv/bin/pip install -r backend/requirements.txt
+cd backend
+export DATABASE_URL='postgresql+psycopg://USER:PASSWORD@HOST:5432/vkr'
+.venv/bin/python manage_catalog.py prepare
+.venv/bin/gunicorn --bind 127.0.0.1:8080 --access-logfile - app:app
+```
+
+Frontend (терминал 2, из корня репозитория):
 
 ```sh
 npm ci --prefix frontend
 npm run dev --prefix frontend
 ```
 
-Открыть `http://127.0.0.1:5173`. Остановить сервер — `Ctrl+C`. Это сервер разработки Vite; настройка `/api/`, описанная выше, действует в контейнере Nginx.
+Открыть `http://127.0.0.1:3000`: `/catalog` рендерится на сервере и показывает 12 товаров из API. Остановить серверы — `Ctrl+C`.
 
-Проверка типов и production-сборка:
+Проверка типов, сборка и тесты:
 
 ```sh
 npm run typecheck --prefix frontend
 npm run build --prefix frontend
+npm run test:ssr --prefix frontend
 ```
 
-Результат сборки — `frontend/dist/`. Для проверки контейнера нужен работающий Docker:
+```sh
+cd backend && .venv/bin/python -m unittest discover -s tests -v
+```
+
+Контейнеры (нужен работающий Docker; контекст сборки frontend — корень репозитория):
 
 ```sh
+docker build -t tea-shop-api backend
+docker run --rm -p 8080:8080 tea-shop-api
+
 docker build -f frontend/Dockerfile -t tea-shop-frontend .
-docker run --rm -p 8080:80 tea-shop-frontend
+docker run --rm -p 3000:80 tea-shop-frontend
 ```
 
-Открыть `http://localhost:8080`; проверка состояния — `http://localhost:8080/healthz`. Остановить контейнер — `Ctrl+C`. Чтобы подключить backend, предварительно задать `API_UPSTREAM` в окружении терминала и передать её без записи значения в команду:
+Проверка состояния — `http://localhost:8080/healthz` и `http://localhost:3000/healthz`. Чтобы контейнер frontend обращался к API не по адресу по умолчанию, передать переменную без записи значения в команду; из контейнера доступен, например, `http://host.docker.internal:8080` (macOS):
 
 ```sh
-docker run --rm -p 8080:80 --env API_UPSTREAM tea-shop-frontend
+docker run --rm -p 3000:80 --env NUXT_PUBLIC_API_BASE_URL tea-shop-frontend
 ```
 
 ## Структура репозитория
 
 - `docs/` — текст ВКР и требования к репозиторию.
-- `frontend/` — исходники Vue, настройки Vite и lock-файл npm.
-- `frontend/Dockerfile` — сборка frontend и образ Nginx.
-- `frontend/nginx/` — конфигурация веб-сервера.
-- `amvera.yaml` — параметры сборки и запуска проекта Amvera.
-- `.dockerignore` — ограничение контекста Docker-сборки файлами frontend.
-
-Backend, миграции и конфигурация PostgreSQL будут добавлены отдельно.
+- `frontend/` — приложение Nuxt 4: `app/` (страницы и компоненты), `server/` (серверный маршрут `/healthz`), `shared/`, `tests/` (SSR-тест каталога), `nuxt.config.ts` и lock-файл npm.
+- `frontend/Dockerfile` — двухступенчатая сборка на Node.js и runtime-образ `node-server`.
+- `backend/` — API на Flask и SQLAlchemy: модели каталога, миграции Alembic, начальные данные, тесты, собственные `Dockerfile` и `amvera.yaml`.
+- `amvera.yaml` — конфигурация проекта frontend в Amvera.
+- `.dockerignore` — ограничение контекста Docker-сборки.
 
 ## База данных
 
-В материалах ВКР описаны таблицы `clients`, `products`, `categories`, `orders`, `order_items`, `payments`, `deliveries`, `admins`, `history`. База данных к текущему frontend не подключена.
+Текущий этап включает только `categories` и `products` для отображения каталога. PostgreSQL проекта `vkr-demo` подключён через секретную переменную `DATABASE_URL` в проекте API. Подробные поля, команды и локальная настройка — в [`backend/README.md`](backend/README.md).
 
 ### Миграции
 
-// todo
+Из каталога `backend`: `python manage_catalog.py upgrade`. Alembic создаёт две таблицы каталога и служебную `alembic_version`. При запуске контейнера миграции применяются автоматически до старта Gunicorn.
 
 ### Тестовые данные (seed)
 
-// todo: справочники (типы чая, страны, категории, способы доставки) и тестовые товары
+`python manage_catalog.py seed` импортирует 7 категорий и 12 товаров из `catalog.json` в пустой каталог. Существующие товары не перезаписываются. JSON используется только для первичного заполнения.
 
 ### Тестовая учётная запись
 
@@ -131,53 +159,62 @@ Backend, миграции и конфигурация PostgreSQL будут до
 
 ## API
 
-Backend и контракт API пока не реализованы. В контейнере предусмотрен маршрут `/api/` для последующего подключения backend через `API_UPSTREAM`.
+Демо API реализовано в [`backend/`](backend/README.md):
+
+- `GET /healthz` → `200 {"status":"ok"}`.
+- `GET /api/catalog` → `200 application/json`: объект с `items` (после начального заполнения — 12 товаров), `total`, `currency: "RUB"`; ответы содержат `Cache-Control: no-store`. Браузерные запросы с домена frontend получают `Access-Control-Allow-Origin` (allowlist в `backend/app.py`). При недоступной БД — `503` с JSON `error`, неизвестный маршрут — `404` с JSON `error`.
+
+Фильтры, пагинация и изменение товаров не реализованы. Полный контракт — в [`backend/README.md`](backend/README.md).
 
 ## Тесты и CI
 
-`npm run typecheck --prefix frontend` проверяет типы; `npm run build --prefix frontend` повторяет проверку типов и создаёт production-сборку. Автоматические функциональные и нагрузочные тесты пока не настроены.
+`npm run typecheck --prefix frontend` проверяет типы; `npm run build --prefix frontend` повторяет проверку типов и создаёт production-сборку; `npm run test:ssr --prefix frontend` запускает SSR-интеграционный тест каталога (`node --test`). Backend проверяется unittest-тестами из `backend/tests/` (команда в Quick Start). Нагрузочные тесты пока не настроены.
 
-Workflow [`Frontend CI`](.github/workflows/frontend.yml) использует Node.js 24, устанавливает зависимости по lock-файлу и собирает приложение при push в `main` и pull request в `main`, затрагивающих frontend или конфигурацию сборки. Workflow выполняет только проверки; токены и шаги развёртывания ему не нужны. Результаты запусков доступны в [GitHub Actions](https://github.com/vfirsov/vfirsov-vr22-vkr/actions/workflows/frontend.yml).
+Workflow [`Frontend CI`](.github/workflows/frontend.yml) использует Node.js 24, устанавливает зависимости по lock-файлу и собирает приложение при push в `main` и pull request в `main`, затрагивающих frontend или конфигурацию сборки. Workflow выполняет только проверки; токены и шаги развёртывания ему не нужны. Backend этот workflow не покрывает. Результаты запусков доступны в [GitHub Actions](https://github.com/vfirsov/vfirsov-vr22-vkr/actions/workflows/frontend.yml).
 
-Первый [запуск CI 15.11.2026](https://github.com/vfirsov/vfirsov-vr22-vkr/actions/runs/43705958633) не начал выполнение: GitHub сообщил о блокировке аккаунта из-за проблемы с биллингом. Локальная сборка и сборка контейнера в Amvera прошли успешно. Для запуска GitHub Actions требуется устранить ограничение аккаунта.
+Первый [запуск CI 15.11.2026](https://github.com/vfirsov/vfirsov-vr22-vkr/actions/runs/43705958633) не начал выполнение: GitHub сообщил о блокировке аккаунта из-за проблемы с биллингом. Локальная сборка и сборка контейнеров в Amvera прошли успешно. Для запуска GitHub Actions требуется устранить ограничение аккаунта.
 
 ## Деплой
 
-Demo размещается отдельным проектом `tea-shop-frontend-demo` в Amvera, регион Москва. В корне репозитория находится `amvera.yaml`; Dockerfile расположен в `frontend/Dockerfile`, контекст сборки — корень репозитория. Контейнер слушает порт `80`, внешнее HTTPS-соединение обслуживает Amvera.
+Демо размещается в двух проектах Amvera, регион Москва:
 
-Для автоматических обновлений выбрана ветка `main`. Код и workflow CI опубликованы в GitHub, но нативный webhook GitHub → Amvera пока **не настроен**: доступный MCP не содержит метода его настройки, а управление браузером в текущей сессии недоступно. Событие Push позволит обновлять Amvera независимо от доступности GitHub Actions.
+| | `tea-shop-frontend-demo` | `tea-shop-api-demo` |
+|---|---|---|
+| Содержимое | структура этого репозитория | каталог `backend/` в корне проекта |
+| `amvera.yaml` | корневой (`dockerfile: frontend/Dockerfile`) | `backend/amvera.yaml` |
+| Порты | `containerPort` и `servicePort` — `80` | `containerPort` и `servicePort` — `8080` |
+| Переменные | `NUXT_PUBLIC_API_BASE_URL` | секретная `DATABASE_URL` (PostgreSQL) |
 
-Подключение публичного репозитория вручную по [документации Amvera](https://docs.amvera.ru/applications/git/webhooks.html):
+В обоих `amvera.yaml` `containerPort` и `servicePort` заданы явно и совпадают. По умолчанию Amvera считает оба порта равными `80`; приложение, слушающее не порт 80, без явного `servicePort` снаружи недоступно — домен отвечает `503` при запущенном контейнере. Frontend слушает сам порт `80`: у этого проекта конфигурация `3000`/`servicePort: 3000` не применилась на стороне Amvera — маршрут домена чередовал `503` и таймауты при исправном контейнере. Возврат на `80` (порт, на котором домен работал до перехода на Nuxt) устранил проблему; право binding порта ниже 1024 пользователю `node` даёт `setcap cap_net_bind_service` в `frontend/Dockerfile`.
 
-1. В Amvera открыть проект → «Репозиторий» → ручную настройку подключения GitHub. Указать публичный репозиторий `https://github.com/vfirsov/vfirsov-vr22-vkr`, целевую ветку `main` и событие **Push**. Создать случайный секрет вебхука, сохранить его вне репозитория, скопировать предложенный Amvera URL и применить настройки.
-2. В GitHub открыть репозиторий → **Settings → Webhooks → Add webhook**. В **Payload URL** вставить URL из Amvera, выбрать **Content type: application/json** и указать тот же секрет.
-3. Выбрать **Just the push event**. Оставить **SSL verification** включённой и нажать **Add webhook**.
-4. После успешной локальной сборки отправить изменение frontend в `main`. Проверить доставку события в **Recent Deliveries**, затем сборку и доступность приложения в Amvera.
+Порядок обновления каждого проекта:
+
+1. Выполнить локальные проверки и production-сборку.
+2. Зафиксировать изменения в Git и доставить их в репозиторий проекта Amvera.
+3. При необходимости изменить переменные проекта (`NUXT_PUBLIC_API_BASE_URL` — frontend; `DATABASE_URL` — API; после изменения переменной контейнер перезапускается).
+4. Запустить сборку в Amvera, проверить журналы сборки и запуска.
+5. Проверить HTTPS, `/healthz`, `/catalog` и ответ `/api/catalog` (12 позиций).
+
+Для отката вернуть в репозиторий проекта содержимое предыдущего рабочего коммита новым коммитом и выполнить пересборку. Переменные окружения не входят в Git и проверяются отдельно; смена `NUXT_PUBLIC_API_BASE_URL` не требует пересборки frontend — достаточно перезапустить контейнер.
+
+### Автоматические обновления
+
+Для автоматических обновлений выбрана ветка `main`. Нативный webhook GitHub → Amvera пока **не настроен**: доступный MCP не содержит метода его настройки, а управление браузером в текущей сессии недоступно. Подключение вручную по [документации Amvera](https://docs.amvera.ru/applications/git/webhooks.html): в проекте frontend включить ручную настройку подключения GitHub (репозиторий `vfirsov/vfirsov-vr22-vkr`, ветка `main`, событие Push), затем добавить webhook с тем же секретом в настройках GitHub. Для проекта API содержимое каталога `backend/` доставляется в репозиторий проекта напрямую; webhook для него не используется.
 
 После восстановления GitHub Actions можно перейти на событие CI / Workflow runs, изменив его на обеих сторонах и проверив развёртывание после успешного CI.
 
-Порядок обновления:
-
-1. Выполнить локальные проверки и production-сборку frontend.
-2. Зафиксировать изменения в Git и доставить их в репозиторий проекта Amvera.
-3. При необходимости задать `API_UPSTREAM` в переменных проекта и перезапустить контейнер после изменения переменной.
-4. Запустить сборку в Amvera, проверить журналы сборки и запуска.
-5. Проверить HTTPS, `/healthz`, открытие и обновление `/catalog`, загрузку JS/CSS и ответ API.
-
-Для отката вернуть в репозиторий проекта содержимое предыдущего рабочего коммита новым коммитом и выполнить пересборку Amvera. Переменные окружения проверяются отдельно: они не входят в Git. Для смены адреса backend достаточно изменить `API_UPSTREAM` и перезапустить контейнер; frontend пересобирать не требуется.
-
 ## Безопасность
 
-В целевой системе из ВКР предусмотрены хеширование паролей с солью, вход по JWT, HTTPS и доступ к БД через ORM. В текущем frontend вход и работа с пользовательскими данными не реализованы.
+В целевой системе из ВКР предусмотрены хеширование паролей с солью, вход по JWT, HTTPS и доступ к БД через ORM. В текущем демо вход и работа с пользовательскими данными не реализованы.
 
 // todo: работа с секретами, как сообщить об уязвимости
 
 ## Известные ограничения
 
-- Реализована основа frontend: стартовая страница, пустой каталог и страница для неизвестного маршрута.
-- Backend, PostgreSQL, авторизация, корзина, заказы, оплата и доставка пока отсутствуют.
-- При работе без backend маршрут `/api/` в контейнере возвращает `503`.
-- Нагрузочные показатели из ВКР не подтверждены для текущего кода и Demo-стенда.
+- Frontend: реализованы стартовая страница, каталог (SSR, 12 товаров из демо API) и страница неизвестного маршрута; корзина, вход и личный кабинет недоступны.
+- Репозиторий проекта frontend в Amvera наполняется через MCP без `package-lock.json` (файл не передаётся через API); сборка выполняет `npm install` по точным версиям из `package.json`. При доставке кода через Git применяется `npm ci` по lock-файлу.
+- Backend: реализовано чтение каталога из PostgreSQL через SQLAlchemy. Изменение товаров через API, заказы, оплата и доставка не реализованы.
+- Нагрузочные показатели из ВКР не подтверждены для текущего кода и демо-стенда.
 
 ## Обратная связь
 

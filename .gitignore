@@ -29,3 +29,10 @@ dist/
 .env.*
 !.env.example
 
+
+# Nuxt and Python
+.nuxt/
+.output/
+__pycache__/
+*.pyc
+.venv/

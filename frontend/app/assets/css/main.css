@@ -122,3 +122,27 @@ h1, h2, p { margin-top: 0; }
   .not-found-page .page-title { font-size: 39px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; scroll-behavior: auto !important; } }
+
+.catalog-intro { max-width: 620px; color: var(--muted); font-size: 14px; line-height: 1.9; margin-bottom: 38px; }
+.catalog-summary { display: flex; justify-content: space-between; gap: 20px; padding: 18px 0; border-top: 1px solid var(--line); font-size: 11px; color: var(--muted); }
+.tea-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.tea-card { display: flex; flex-direction: column; padding: 25px; background: #eef0e6; border: 1px solid #e2e5d8; }
+.tea-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 29px; }
+.tea-category { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; }
+.card-leaf { width: 37px; height: 37px; color: #82946b; }
+.tea-origin { font-size: 10px; color: var(--muted); margin-bottom: 10px; }
+.tea-card h2 { font: 400 29px/1.2 Georgia, 'Times New Roman', serif; letter-spacing: -.6px; margin-bottom: 17px; }
+.tea-description { font-size: 12px; line-height: 1.9; color: var(--muted); margin-bottom: 28px; }
+.tea-card-bottom { margin-top: auto; padding-top: 18px; border-top: 1px solid #d8ddce; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.tea-price { margin: 0; font: 400 23px/1.3 Georgia, 'Times New Roman', serif; }
+.tea-price span { font: 11px/1.4 -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: var(--muted); white-space: nowrap; }
+.tea-stock { font-size: 10px; }
+.tea-stock.is-unavailable { color: #766957; }
+.catalog-note { font-size: 11px; line-height: 1.8; color: var(--muted); margin: 24px 0 10px; }
+@media (max-width: 1000px) { .tea-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) {
+  .tea-grid { grid-template-columns: 1fr; gap: 15px; }
+  .tea-card { padding: 23px; }
+  .catalog-intro { font-size: 13px; margin-bottom: 28px; }
+  .catalog-summary { font-size: 10px; gap: 10px; }
+}
