@@ -166,13 +166,9 @@ docker run --rm -p 3000:80 --env NUXT_PUBLIC_API_BASE_URL tea-shop-frontend
 
 Фильтры, пагинация и изменение товаров не реализованы. Полный контракт — в [`backend/README.md`](backend/README.md).
 
-## Тесты и CI
+## Тесты
 
 `npm run typecheck --prefix frontend` проверяет типы; `npm run build --prefix frontend` повторяет проверку типов и создаёт production-сборку; `npm run test:ssr --prefix frontend` запускает SSR-интеграционный тест каталога (`node --test`). Backend проверяется unittest-тестами из `backend/tests/` (команда в Quick Start). Нагрузочные тесты пока не настроены.
-
-Workflow [`Frontend CI`](.github/workflows/frontend.yml) использует Node.js 24, устанавливает зависимости по lock-файлу и собирает приложение при push в `main` и pull request в `main`, затрагивающих frontend или конфигурацию сборки. Workflow выполняет только проверки; токены и шаги развёртывания ему не нужны. Backend этот workflow не покрывает. Результаты запусков доступны в [GitHub Actions](https://github.com/vfirsov/vfirsov-vr22-vkr/actions/workflows/frontend.yml).
-
-Первый [запуск CI 15.11.2026](https://github.com/vfirsov/vfirsov-vr22-vkr/actions/runs/43705958633) не начал выполнение: GitHub сообщил о блокировке аккаунта из-за проблемы с биллингом. Локальная сборка и сборка контейнеров в Amvera прошли успешно. Для запуска GitHub Actions требуется устранить ограничение аккаунта.
 
 ## Деплой
 
@@ -200,8 +196,6 @@ Workflow [`Frontend CI`](.github/workflows/frontend.yml) использует No
 ### Автоматические обновления
 
 Для автоматических обновлений выбрана ветка `main`. Нативный webhook GitHub → Amvera пока **не настроен**: доступный MCP не содержит метода его настройки, а управление браузером в текущей сессии недоступно. Подключение вручную по [документации Amvera](https://docs.amvera.ru/applications/git/webhooks.html): в проекте frontend включить ручную настройку подключения GitHub (репозиторий `vfirsov/vfirsov-vr22-vkr`, ветка `main`, событие Push), затем добавить webhook с тем же секретом в настройках GitHub. Для проекта API содержимое каталога `backend/` доставляется в репозиторий проекта напрямую; webhook для него не используется.
-
-После восстановления GitHub Actions можно перейти на событие CI / Workflow runs, изменив его на обеих сторонах и проверив развёртывание после успешного CI.
 
 ## Безопасность
 
