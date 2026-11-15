@@ -1,0 +1,14 @@
+[
+  {"id": 1, "slug": "longjing", "name": "Лун Цзин", "category": "Зелёный чай", "origin": "Китай, Чжэцзян", "description": "Мягкий зелёный чай с ароматом каштана, свежей травы и лёгкой сладостью.", "price": 690, "weightGrams": 50, "inStock": true},
+  {"id": 2, "slug": "sencha", "name": "Сенча", "category": "Зелёный чай", "origin": "Япония, Сидзуока", "description": "Свежий травянистый вкус, морские оттенки и яркий зелёный настой.", "price": 590, "weightGrams": 50, "inStock": true},
+  {"id": 3, "slug": "bi-luo-chun", "name": "Би Ло Чунь", "category": "Зелёный чай", "origin": "Китай, Цзянсу", "description": "Нежные скрученные листья с цветочным ароматом и фруктовым послевкусием.", "price": 750, "weightGrams": 50, "inStock": true},
+  {"id": 4, "slug": "tie-guan-yin", "name": "Те Гуань Инь", "category": "Улун", "origin": "Китай, Фуцзянь", "description": "Светлый улун с ароматом сирени, сливочными нотами и долгим послевкусием.", "price": 650, "weightGrams": 50, "inStock": true},
+  {"id": 5, "slug": "da-hong-pao", "name": "Да Хун Пао", "category": "Улун", "origin": "Китай, Уишань", "description": "Тёмный утёсный улун с оттенками печёных фруктов, орехов и карамели.", "price": 890, "weightGrams": 50, "inStock": true},
+  {"id": 6, "slug": "dong-ding", "name": "Дун Дин", "category": "Улун", "origin": "Тайвань, Наньтоу", "description": "Сбалансированный улун с медовым ароматом и мягким ореховым вкусом.", "price": 820, "weightGrams": 50, "inStock": false},
+  {"id": 7, "slug": "dian-hong", "name": "Дянь Хун", "category": "Красный чай", "origin": "Китай, Юньнань", "description": "Насыщенный красный чай с золотистыми почками, нотами мёда и сухофруктов.", "price": 540, "weightGrams": 50, "inStock": true},
+  {"id": 8, "slug": "assam", "name": "Ассам", "category": "Чёрный чай", "origin": "Индия, Ассам", "description": "Крепкий чай с солодовым ароматом, плотным вкусом и тёплым янтарным настоем.", "price": 350, "weightGrams": 100, "inStock": true},
+  {"id": 9, "slug": "bai-mu-dan", "name": "Бай Му Дань", "category": "Белый чай", "origin": "Китай, Фуцзянь", "description": "Деликатный белый чай с цветочными нотами и мягкой фруктовой сладостью.", "price": 720, "weightGrams": 50, "inStock": true},
+  {"id": 10, "slug": "shu-puer", "name": "Шу Пуэр", "category": "Пуэр", "origin": "Китай, Юньнань", "description": "Выдержанный тёмный чай с древесными нотами и округлым вкусом без горечи.", "price": 480, "weightGrams": 50, "inStock": true},
+  {"id": 11, "slug": "sheng-puer", "name": "Шэн Пуэр", "category": "Пуэр", "origin": "Китай, Юньнань", "description": "Живой чай с ароматом луговых трав, лёгкой терпкостью и сладким послевкусием.", "price": 760, "weightGrams": 50, "inStock": false},
+  {"id": 12, "slug": "rooibos", "name": "Ройбуш", "category": "Травяной напиток", "origin": "ЮАР, Седерберг", "description": "Напиток без кофеина с естественной сладостью, древесными и ванильными нотами.", "price": 390, "weightGrams": 100, "inStock": true}
+]
