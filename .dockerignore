@@ -1,0 +1,16 @@
+# The frontend is the only source needed by this image.
+**
+!frontend/
+!frontend/**
+
+# Never send dependencies, local builds, credentials or editor state.
+frontend/**/node_modules
+frontend/**/dist
+frontend/**/.env
+frontend/**/.env.*
+frontend/**/.git
+frontend/**/.DS_Store
+frontend/**/.idea
+frontend/**/.vscode
+frontend/**/*.log
+

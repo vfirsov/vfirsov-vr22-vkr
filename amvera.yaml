@@ -1,0 +1,13 @@
+version: null
+meta:
+  environment: docker
+  toolchain:
+    name: docker
+    version: "20"
+build:
+  dockerfile: frontend/Dockerfile
+run:
+  persistenceMount: /data
+  containerPort: 80
+serviceType: compute
+
