@@ -25,7 +25,7 @@ import { RouterLink, RouterView } from 'vue-router'
 
     <footer class="site-footer">
       <span class="footer-brand">лист</span>
-      <p>Для маленьких ежедневных ритуалов.</p>
+      <p>Хороший чай для маленьких ежедневных ритуалов.</p>
       <span class="demo-label">Демонстрационная версия</span>
     </footer>
   </div>
