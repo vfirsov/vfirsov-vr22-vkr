@@ -4,18 +4,18 @@
 
 ## Запуск
 
-Нужен Python 3.12+. Из корня репозитория:
+Нужен Python 3.14+ и работающий PostgreSQL. Локальная БД поднимается из корня репозитория командами `cp .env.example .env` и `docker compose up -d` (подробности — в корневом README, «Настройки localhost»); `DATABASE_URL` для неё лежит в `.env`. Из корня репозитория:
 
 ```sh
-python3 -m venv backend/.venv
+python3.14 -m venv backend/.venv
 backend/.venv/bin/pip install -r backend/requirements.txt
+set -a; . ./.env; set +a
 cd backend
-export DATABASE_URL='postgresql+psycopg://USER:PASSWORD@HOST:5432/vkr'
 .venv/bin/python manage_catalog.py prepare
 .venv/bin/gunicorn --bind 127.0.0.1:8080 --access-logfile - app:app
 ```
 
-Замените `USER`, `PASSWORD` и `HOST` параметрами своего PostgreSQL. Пароль с особыми символами в URL должен быть percent-encoded. Секреты храните в окружении, а не в репозитории. Для локальной демонстрации можно использовать `export DATABASE_URL='sqlite:////absolute/path/catalog.db'`; в Amvera используется PostgreSQL.
+Для другой БД вместо загрузки `.env` задайте `export DATABASE_URL='postgresql+psycopg://USER:PASSWORD@HOST:5432/vkr'` со своими параметрами. Пароль с особыми символами в URL должен быть percent-encoded. Секреты храните в окружении, а не в репозитории. Для локальной демонстрации можно использовать `export DATABASE_URL='sqlite:////absolute/path/catalog.db'`; в Amvera используется PostgreSQL.
 
 Тесты из каталога `backend` используют временную SQLite и не обращаются к рабочей БД:
 
@@ -61,8 +61,11 @@ CORS: запросы с `Origin` из allowlist в `app.py` (домен демо
 
 ```sh
 docker build -t tea-shop-api backend
-docker run --rm -p 8080:8080 --env DATABASE_URL tea-shop-api
+docker run --rm --network vkr -p 127.0.0.1:8080:8080 \
+  -e DATABASE_URL='postgresql+psycopg://vkr:vkr@vkr-postgres:5432/vkr' tea-shop-api
 ```
+
+Контейнер подключается к PostgreSQL из `docker-compose.yml` по имени контейнера `vkr-postgres` в сети Docker `vkr` (запуск БД — в корневом README, «Настройки localhost»); адрес `127.0.0.1:5432` из `.env` внутри контейнера указывает на сам контейнер API, поэтому здесь URL задаётся явно. Логин и пароль должны совпадать с `.env`.
 
 В проекте Nuxt адрес API задаётся публичной runtime-переменной `NUXT_PUBLIC_API_BASE_URL` (базовый URL без `/api/catalog`); её значение доступно и серверу Nuxt, и браузеру. Доступ к БД настроен только в проекте API.
 

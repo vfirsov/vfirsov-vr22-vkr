@@ -15,7 +15,7 @@
 
 ### Backend — [`backend/`](backend/)
 
-- Демо API на Flask 3 + Gunicorn, SQLAlchemy 2, Alembic, Python 3.12.
+- Демо API на Flask 3 + Gunicorn, SQLAlchemy 2, Alembic, Python 3.14.
 - Роуты: `GET /healthz`; `GET /api/catalog` — активные товары из БД при каждом запросе, `total`, `currency: "RUB"`, `Cache-Control: no-store`; при недоступной БД или незаданном `DATABASE_URL` — `503` с JSON `error`; неизвестный маршрут — `404` с JSON `error`.
 - CORS: allowlist в `backend/app.py` (домен демо-frontend и локальные адреса); остальные Origin CORS-заголовков не получают.
 - Таблицы `categories` и `products`, миграция `0001_catalog`, начальное заполнение из `catalog.json` (7 категорий, 12 товаров; существующие данные не перезаписываются).
@@ -56,6 +56,7 @@
 
 - В репозитории настроены проверки: `npm run typecheck`, `npm run build`, `npm run test:ssr` (frontend) и unittest-тесты из `backend/tests/` (backend). Команды — в [README.md](README.md).
 - Записи о прогоне и результатах с указанием версии кода, окружения и даты в репозитории нет; CI отключён.
+- Локальный прогон 16.11.2026 (незакоммиченная рабочая копия после `eb86cf8`, macOS 27 Apple Silicon, Node.js 26.13.1, Python 3.14.10, Docker Desktop 29.1.3): unittest backend — 9/9; PostgreSQL 17 из `docker-compose.yml` — healthy, `prepare` загрузил 7 категорий и 12 товаров; Gunicorn и dev-сервер Nuxt напрямую — `/healthz` 200, `/api/catalog` 12 позиций, `/catalog` с товарами в HTML, CORS-заголовки для `http://127.0.0.1:3000`; контейнеры `tea-shop-api` (сеть `vkr`, БД по имени `vkr-postgres`) и `tea-shop-frontend` (демо API и локальный API через LAN-адрес хоста) — `/healthz` 200, `/catalog` 200 с товарами.
 - Адресы ручной проверки демо-стенда (`/healthz`, `/catalog`, `/api/catalog`) перечислены в разделе «Демонстрация» README. В дату фиксации статуса стенд не проверялся.
 
 Дата фиксации: 16.11.2026.
