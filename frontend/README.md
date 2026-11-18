@@ -1,12 +1,12 @@
 # Nuxt frontend
 
-Nuxt 4 с серверным рендерингом. Для каждого запроса `/catalog` сервер Nuxt получает JSON каталога из Flask напрямую по адресу из `NUXT_PUBLIC_API_BASE_URL`; при клиентской навигации то же делает браузер, поэтому API отдаёт CORS-заголовки на домен frontend. Прокси-маршрут `/api/catalog` на сервере Nuxt не используется. `await useFetch` дожидается данных перед рендерингом: названия, описания, цены и наличие находятся в исходном HTML. При гидратации используются данные Nuxt payload. Prerender и серверный кеш каталога отключены; ответы содержат `Cache-Control: no-store`.
+Nuxt 4 с серверным рендерингом. Для каждого запроса `/catalog` сервер Nuxt получает JSON каталога из Flask напрямую по адресу из `NUXT_API_BASE_URL` (если пуст — из `NUXT_PUBLIC_API_BASE_URL`); при клиентской навигации браузер использует `NUXT_PUBLIC_API_BASE_URL`, поэтому API отдаёт CORS-заголовки на домен frontend. Прокси-маршрут `/api/catalog` на сервере Nuxt не используется. `await useFetch` дожидается данных перед рендерингом: названия, описания, цены и наличие находятся в исходном HTML. При гидратации используются данные Nuxt payload. Prerender и серверный кеш каталога отключены; ответы содержат `Cache-Control: no-store`.
 
 Схема: браузер → Nuxt (runtime SSR) → Flask `/api/catalog` → JSON → HTML; при клиентской навигации — браузер → Flask напрямую (CORS).
 
 ## Локальный запуск
 
-Нужен Node.js 22.22.3+, 24.15.0+ или 26+ (ограничение `engines` в `package.json`; контейнер собирается на Node.js 24). Из корня репозитория:
+Нужен Node.js 24 LTS (ограничение `engines` в `package.json`). Из корня репозитория:
 
 ```sh
 npm ci --prefix frontend
@@ -22,7 +22,7 @@ npm run dev --prefix frontend
 NUXT_PUBLIC_API_BASE_URL=https://tea-shop-api-demo-vfirsov.msk1.amvera.tech npm run dev --prefix frontend
 ```
 
-`NUXT_PUBLIC_API_BASE_URL` — базовый URL Flask без `/api/catalog`; значение доступно и серверу Nuxt (SSR), и браузеру (клиентская навигация), секретом не является. Переменная применяется при запуске готовой сборки, пересборка для смены адреса не требуется. Для development также можно скопировать `.env.example` в `.env`. Готовый Node-сервер не читает `.env`: переменную нужно передавать через окружение процесса.
+`NUXT_PUBLIC_API_BASE_URL` — базовый URL Flask без `/api/catalog`; значение доступно браузеру и служит резервным адресом для SSR. `NUXT_API_BASE_URL` задаёт отдельный адрес только для SSR и остаётся в серверной конфигурации. Переменная применяется при запуске готовой сборки, пересборка для смены адреса не требуется. Для development также можно скопировать `.env.example` в `.env`. Готовый Node-сервер не читает `.env`: переменную нужно передавать через окружение процесса.
 
 ## Проверки и production
 
@@ -35,6 +35,16 @@ NUXT_PUBLIC_API_BASE_URL=https://tea-shop-api-demo-vfirsov.msk1.amvera.tech npm 
 Сборка включает проверку типов. SSR-тест запускает production-сервер с тестовым API, проверяет товары в HTML без выполнения JS, изменение данных между двумя запросами без пересборки, HTTP 503 при сбое API, HTTP 404 удалённого прокси-маршрута `/api/catalog` и HTTP 404 неизвестной страницы. Flask отдельно проверяется тестами в `backend/tests`.
 
 ## Docker и Amvera
+
+Полный локальный стенд (БД, API, frontend) запускается из корня репозитория:
+
+```sh
+docker compose up --build
+```
+
+Откройте `http://localhost:3000`. Compose задаёт `NUXT_API_BASE_URL=http://api:8080` для SSR и `NUXT_PUBLIC_API_BASE_URL=http://localhost:8080` для браузера на том же компьютере. Ручная настройка IP не требуется. Внутренний адрес хранится вне публичной runtime-конфигурации. Одинаковый ключ `catalog` в `useFetch` позволяет гидратации использовать SSR payload при разных адресах API.
+
+Для отдельного контейнера с демо API:
 
 Из корня репозитория:
 

@@ -4,10 +4,10 @@
 
 ## Запуск
 
-Нужен Python 3.14+ и работающий PostgreSQL. Локальная БД поднимается из корня репозитория командами `cp .env.example .env` и `docker compose up -d` (подробности — в корневом README, «Настройки localhost»); `DATABASE_URL` для неё лежит в `.env`. Из корня репозитория:
+Нужен Python 3.12+ и работающий PostgreSQL. Локальная БД поднимается из корня репозитория командами `cp .env.example .env` и `docker compose up -d postgres` (подробности — в корневом README, «Настройки localhost»); `DATABASE_URL` для неё лежит в `.env`. Из корня репозитория:
 
 ```sh
-python3.14 -m venv backend/.venv
+python3 -m venv backend/.venv
 backend/.venv/bin/pip install -r backend/requirements.txt
 set -a; . ./.env; set +a
 cd backend
@@ -67,6 +67,6 @@ docker run --rm --network vkr -p 127.0.0.1:8080:8080 \
 
 Контейнер подключается к PostgreSQL из `docker-compose.yml` по имени контейнера `vkr-postgres` в сети Docker `vkr` (запуск БД — в корневом README, «Настройки localhost»); адрес `127.0.0.1:5432` из `.env` внутри контейнера указывает на сам контейнер API, поэтому здесь URL задаётся явно. Логин и пароль должны совпадать с `.env`.
 
-В проекте Nuxt адрес API задаётся публичной runtime-переменной `NUXT_PUBLIC_API_BASE_URL` (базовый URL без `/api/catalog`); её значение доступно и серверу Nuxt, и браузеру. Доступ к БД настроен только в проекте API.
+В проекте Nuxt браузер использует `NUXT_PUBLIC_API_BASE_URL`, а SSR — `NUXT_API_BASE_URL` с возвратом к публичному адресу, если внутренний пуст. Оба адреса задаются без `/api/catalog`. Полный локальный стенд запускается командой `docker compose up --build`; Compose задаёт адреса автоматически. Доступ к БД настроен только в проекте API.
 
 Использование Gunicorn соответствует [документации Flask](https://flask.palletsprojects.com/en/stable/deploying/gunicorn/).

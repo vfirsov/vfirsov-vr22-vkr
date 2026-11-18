@@ -3,7 +3,10 @@ export default defineNuxtConfig({
   ssr: true,
   devtools: { enabled: false },
   css: ['~/assets/css/main.css'],
-  runtimeConfig: { public: { apiBaseUrl: 'http://127.0.0.1:8080' } },
+  runtimeConfig: {
+    apiBaseUrl: '',
+    public: { apiBaseUrl: 'http://127.0.0.1:8080' },
+  },
   nitro: { preset: 'node-server' },
   routeRules: {
     '/catalog': { ssr: true, prerender: false, cache: false, headers: { 'cache-control': 'no-store' } },

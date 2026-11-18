@@ -1,14 +1,12 @@
-# Локальный PostgreSQL для разработки. Логин, пароль и имя базы берутся из корневого .env
-# (шаблон — .env.example). Сеть называется vkr, чтобы контейнер API подключался
-# к БД по адресу vkr-postgres:5432 (см. README, «Настройки localhost»).
+# Local stack; defaults work without .env. To run only the database: docker compose up -d postgres
 services:
   postgres:
     image: postgres:17
     container_name: vkr-postgres
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER:-vkr}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vkr}
+      POSTGRES_DB: ${POSTGRES_DB:-vkr}
     ports:
       - "127.0.0.1:5432:5432"
     volumes:
@@ -19,6 +17,50 @@ services:
       timeout: 3s
       retries: 10
     restart: unless-stopped
+
+  api:
+    build: ./backend
+    environment:
+      # Encode credentials in Python rather than interpolating a database URL.
+      POSTGRES_USER: ${POSTGRES_USER:-vkr}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vkr}
+      POSTGRES_DB: ${POSTGRES_DB:-vkr}
+    entrypoint: ["python", "-c"]
+    command:
+      - |
+        import os
+        from sqlalchemy.engine import URL
+        os.environ["DATABASE_URL"] = URL.create(
+            "postgresql+psycopg",
+            username=os.environ["POSTGRES_USER"],
+            password=os.environ["POSTGRES_PASSWORD"],
+            host="postgres", port=5432, database=os.environ["POSTGRES_DB"],
+        ).render_as_string(hide_password=False)
+        os.execv("/bin/sh", ["sh", "/app/start.sh"])
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/api/catalog', timeout=3).read()"]
+      interval: 5s
+      timeout: 4s
+      retries: 10
+      start_period: 10s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    environment:
+      NUXT_API_BASE_URL: http://api:8080
+      NUXT_PUBLIC_API_BASE_URL: http://localhost:8080
+    ports:
+      - "127.0.0.1:3000:80"
+    depends_on:
+      api:
+        condition: service_healthy
 
 volumes:
   postgres-data:

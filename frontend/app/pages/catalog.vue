@@ -6,8 +6,11 @@ useSeoMeta({
   description: 'Коллекция чая: зелёный, чёрный, белый чай, улуны и пуэры. Происхождение и цены.',
 })
 
-const { public: { apiBaseUrl } } = useRuntimeConfig()
-const { data: catalog, error } = await useFetch<Catalog>(`${apiBaseUrl}/api/catalog`, { server: true, lazy: false, retry: 0 })
+const config = useRuntimeConfig()
+const apiBaseUrl = import.meta.server
+  ? config.apiBaseUrl || config.public.apiBaseUrl
+  : config.public.apiBaseUrl
+const { data: catalog, error } = await useFetch<Catalog>(`${apiBaseUrl}/api/catalog`, { key: 'catalog', server: true, lazy: false, retry: 0 })
 if (import.meta.server && error.value) setResponseStatus(503)
 const price = (value: number) => `${new Intl.NumberFormat('ru-RU').format(value)} ₽`
 </script>
