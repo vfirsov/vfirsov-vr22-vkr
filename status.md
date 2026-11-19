@@ -15,7 +15,7 @@
 
 ### Backend — [`backend/`](backend/)
 
-- Демо API на Flask 3 + Gunicorn, SQLAlchemy 2, Alembic, Python 3.14.
+- Демо API на Flask 3, SQLAlchemy 2, Alembic, Python 3.14.
 - Роуты: `GET /healthz`; `GET /api/catalog` — активные товары из БД при каждом запросе, `total`, `currency: "RUB"`, `Cache-Control: no-store`; при недоступной БД или незаданном `DATABASE_URL` — `503` с JSON `error`; неизвестный маршрут — `404` с JSON `error`.
 - CORS: allowlist в `backend/app.py` (домен демо-frontend и локальные адреса); остальные Origin CORS-заголовков не получают.
 - Таблицы `categories` и `products`, миграция `0001_catalog`, начальное заполнение из `catalog.json` (7 категорий, 12 товаров; существующие данные не перезаписываются).

@@ -2,4 +2,4 @@
 set -eu
 
 python manage_catalog.py prepare
-exec gunicorn --bind 0.0.0.0:8080 --no-control-socket --workers 1 --threads 2 --access-logfile - --error-logfile - app:app
+exec python -m granian --interface wsgi --host 0.0.0.0 --port 8080 --blocking-threads 2 --access-log app:app
