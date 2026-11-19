@@ -101,9 +101,7 @@ flowchart LR
 |---|---|
 | macOS | Команды раздела [Quick Start](#quick-start) в терминале macOS, после установки требуемых пакетов. |
 | Linux | Команды Quick Start в терминале Linux, после установки требуемых пакетов. |
-| Windows | API и Nuxt запускаются напрямую из PowerShell. Для предусмотренного здесь запуска PostgreSQL в контейнере и для полного стенда нужен Docker Desktop в режиме Linux-контейнеров. |
-
-**Почему для Windows раньше требовалась WSL.** Сервер Gunicorn использовал системные функции Unix, а Quick Start предполагал пути вида `.venv/bin` и загрузку переменных командой оболочки Unix. Теперь Flask обслуживает Granian, у которого есть сборка для Windows. Команды для установки зависимостей и запуска API приведены в [Quick Start для PowerShell](#windows-powershell).
+| Windows | API и Nuxt запускаются напрямую из [PowerShell](#windows-powershell). Для предусмотренного здесь запуска PostgreSQL в контейнере и для полного стенда нужен Docker Desktop в режиме Linux-контейнеров. |
 
 ### Настройки localhost
 
