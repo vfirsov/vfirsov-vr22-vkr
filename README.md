@@ -47,7 +47,7 @@
 Демо-стенд состоит из трёх проектов Amvera, регион Москва (`msk1`):
 
 - **Frontend:** [tea-shop-frontend-demo-vfirsov.msk1.amvera.tech](https://tea-shop-frontend-demo-vfirsov.msk1.amvera.tech), проект `tea-shop-frontend-demo` — Nuxt 4 SSR. Проверки: [`/healthz`](https://tea-shop-frontend-demo-vfirsov.msk1.amvera.tech/healthz) → `200 {"status":"ok"}`, [`/catalog`](https://tea-shop-frontend-demo-vfirsov.msk1.amvera.tech/catalog) → HTML с 12 товарами из API.
-- **API:** [tea-shop-api-demo-vfirsov.msk1.amvera.tech](https://tea-shop-api-demo-vfirsov.msk1.amvera.tech), проект `tea-shop-api-demo` — Flask + Gunicorn. Проверки: [`/healthz`](https://tea-shop-api-demo-vfirsov.msk1.amvera.tech/healthz) → `200 {"status":"ok"}`, [`/api/catalog`](https://tea-shop-api-demo-vfirsov.msk1.amvera.tech/api/catalog) → `200`, 12 позиций.
+- **API:** [tea-shop-api-demo-vfirsov.msk1.amvera.tech](https://tea-shop-api-demo-vfirsov.msk1.amvera.tech), проект `tea-shop-api-demo` — API каталога на Flask. Проверки: [`/healthz`](https://tea-shop-api-demo-vfirsov.msk1.amvera.tech/healthz) → `200 {"status":"ok"}`, [`/api/catalog`](https://tea-shop-api-demo-vfirsov.msk1.amvera.tech/api/catalog) → `200`, 12 позиций.
 - **БД:** проект `vkr-demo`, PostgreSQL 17.5, база `vkr`, одна реплика. API подключается по внутреннему адресу `cnpg-vkr-demo-rw:5432`; внешнего домена БД нет. Загружены 7 категорий и 12 товаров.
 
 В новой версии frontend страница `/catalog` рендерится на сервере Nuxt и берёт товары из этого API.
@@ -59,14 +59,14 @@
 ```mermaid
 flowchart LR
   B[Браузер] -- HTTPS --> FE[Nuxt 4 SSR<br>витрина и админ-панель]
-  FE -- "REST / JSON при SSR" --> API[Flask + Gunicorn]
+  FE -- "REST / JSON при SSR" --> API[Flask + Granian]
   B -- "REST / JSON при клиентской навигации, CORS" --> API
   API -- SQLAlchemy --> DB[(PostgreSQL)]
   API -.-> EXT[YooKassa, СДЭК]
 ```
 
 - **Frontend** — одно приложение Nuxt 4 (Vue 3, TypeScript) с серверным рендерингом на Nitro (`node-server`). При открытии страницы запрос к API выполняет сервер Nuxt (SSR); при дальнейшей навигации браузер обращается к API сам, поэтому API отдаёт CORS-заголовки на домен frontend. Реализованы стартовая страница, каталог и страница 404; корзина, вход и личный кабинет не реализованы, админ-панель планируется как маршруты этого же приложения с доступом по роли.
-- **API** — Flask + Gunicorn, доступ к БД через SQLAlchemy, схема управляется миграциями Alembic. Целевой API: каталог с фильтрами, корзина, заказы, остатки, вход по JWT и проверка роли на стороне API. Реализовано только чтение каталога.
+- **API** — Flask + Granian, доступ к БД через SQLAlchemy, схема управляется миграциями Alembic. Целевой API: каталог с фильтрами, корзина, заказы, остатки, вход по JWT и проверка роли на стороне API. Реализовано только чтение каталога.
 - **БД** — PostgreSQL. Реализованы таблицы `categories` и `products`; таблицы пользователей, заказов и остатков не реализованы.
 - Frontend, API и БД — три отдельных проекта Amvera; API обращается к БД по внутреннему адресу, у БД нет внешнего домена.
 - Пунктир — внешние интеграции из материалов ВКР: оплата YooKassa и доставка СДЭК. В текущем репозитории они не реализованы.
@@ -76,7 +76,7 @@ flowchart LR
 | Компонент | Технологии | Где закреплены версии |
 |---|---|---|
 | Frontend | Nuxt 4.6 (Vue 3.5, TypeScript 6), Nitro `node-server`, npm | `frontend/package.json`, `frontend/package-lock.json` |
-| API | Python 3.14, Flask 3.1, Gunicorn 27, SQLAlchemy 2.0, Alembic 1.20, psycopg 3 | `backend/requirements.txt` (пакеты, точные версии); Python — в `backend/Dockerfile` |
+| API | Python 3.14, Flask 3.1, Granian 2.8.8, SQLAlchemy 2.0, Alembic 1.20, psycopg 3 | `backend/requirements.txt` (пакеты, точные версии); Python — в `backend/Dockerfile` |
 | БД | PostgreSQL 17 | в репозитории не закреплена: локально — образ `postgres:17` (команда в «Настройках localhost»), на демо-стенде — 17.5 в проекте `vkr-demo` |
 | Контейнеры | Docker, образы `node:24-alpine` и `python:3.14-slim` | `frontend/Dockerfile`, `backend/Dockerfile` |
 | Хостинг | Amvera, toolchain `docker` | `amvera.yaml`, `backend/amvera.yaml`; регион `msk1` задаётся при создании проекта, в файлах его нет |
@@ -101,25 +101,25 @@ flowchart LR
 |---|---|
 | macOS | Команды раздела [Quick Start](#quick-start) в терминале macOS, после установки требуемых пакетов. |
 | Linux | Команды Quick Start в терминале Linux, после установки требуемых пакетов. |
-| Windows | Полный стенд: Docker Desktop в режиме Linux-контейнеров, `docker compose up --build` из PowerShell или WSL 2. Запуск API вне контейнера — внутри WSL 2. |
+| Windows | API и Nuxt запускаются напрямую из PowerShell. Для предусмотренного здесь запуска PostgreSQL в контейнере и для полного стенда нужен Docker Desktop в режиме Linux-контейнеров. |
 
-**Почему Windows требует дополнительной настройки.** Используемая программа запуска серверной части — Gunicorn — не работает непосредственно в Windows. Кроме того, команды инструкции написаны для терминалов Linux и macOS. Поэтому команды запуска API вне контейнера выполняют внутри WSL 2, например с Ubuntu. Команда полного стенда `docker compose up --build` работает также из PowerShell: Python и Gunicorn запускаются внутри Linux-контейнера. Для контейнерного варианта предусмотрен Docker Desktop с включённой интеграцией выбранного дистрибутива WSL. Запуск API непосредственно в Windows, без WSL и Linux-контейнера, потребует другой программы запуска серверной части и отдельной инструкции.
+**Почему для Windows раньше требовалась WSL.** Сервер Gunicorn использовал системные функции Unix, а Quick Start предполагал пути вида `.venv/bin` и загрузку переменных командой оболочки Unix. Теперь Flask обслуживает Granian, у которого есть сборка для Windows. Команды для установки зависимостей и запуска API приведены в [Quick Start для PowerShell](#windows-powershell).
 
 ### Настройки localhost
 
 - **Порты:** frontend `3000`, API `8080`, PostgreSQL `5432`. Порт `3000` входит в CORS allowlist API (см. раздел «Конфигурация»): при другом порте или адресе frontend `/catalog` отрисуется на сервере, но браузер заблокирует клиентские запросы к API.
-- **`DATABASE_URL`** — нужна в окружении терминала, где выполняются `manage_catalog.py` и Gunicorn; без неё миграции не запускаются, а `/api/catalog` отвечает `503`. Формат — в разделе «Конфигурация».
+- **`DATABASE_URL`** — нужна в окружении терминала, где выполняются `manage_catalog.py` и Granian; без неё миграции не запускаются, а `/api/catalog` отвечает `503`. Формат — в разделе «Конфигурация».
 - **`NUXT_PUBLIC_API_BASE_URL`** — по умолчанию `http://127.0.0.1:8080`, для локального запуска менять не нужно. Полное описание — в разделе «Конфигурация».
-- **Локальный PostgreSQL в Docker** описан в `docker-compose.yml`: образ `postgres:17`, контейнер `vkr-postgres`, сеть `vkr`, порт `127.0.0.1:5432`, именованный том для данных и healthcheck. Логин, пароль и имя базы Compose берёт из корневого `.env`; шаблон с парой `vkr`/`vkr` — `.env.example`. Из корня репозитория:
+- **Локальный PostgreSQL в Docker** описан в `docker-compose.yml`: образ `postgres:17`, контейнер `vkr-postgres`, сеть `vkr`, порт `127.0.0.1:5432`, именованный том для данных и healthcheck. Логин, пароль и имя базы Compose берёт из корневого `.env`; шаблон с парой `vkr`/`vkr` — `.env.example`.
+
+Перед первым запуском из корня проекта создайте `.env` из шаблона, если файла ещё нет. В PowerShell выполните `if (!(Test-Path .env)) { Copy-Item .env.example .env }`, в Linux или macOS — `test -f .env || cp .env.example .env`. Затем в том же каталоге:
 
 ```sh
-cp .env.example .env        # логин и пароль можно поменять до первого запуска, см. ниже
 docker compose up -d postgres
-docker compose ps           # дождитесь статуса healthy
-set -a; . ./.env; set +a    # загрузить DATABASE_URL в текущий терминал
+docker compose ps postgres
 ```
 
-Загрузка `.env` нужна в том терминале, где запускаются `manage_catalog.py` и Gunicorn: сами они `.env` не читают. Если меняете логин, пароль или имя базы, правьте их в `.env` в обоих местах (`POSTGRES_*` и `DATABASE_URL`, пароль в URL — percent-encoded) для запуска API вне Docker. В Compose адрес БД собирается автоматически из `POSTGRES_*`. Образ применяет `POSTGRES_*` только при создании пустого тома: после первого запуска смена значений требует `docker compose down -v`. Остановка — `docker compose stop`, повторный запуск — `docker compose up -d postgres` (данные сохраняются в томе), полный сброс данных — `docker compose down -v`. Контейнер API в Compose обращается к БД по имени сервиса `postgres` в сети `vkr`.
+Дождитесь статуса `healthy`. Для запуска API на хосте загрузите `DATABASE_URL` в тот терминал, где будете запускать миграции и сервер (команды для каждой ОС есть в [Quick Start](#запуск-в-локальном-окружении)). Если меняете логин, пароль или имя базы, правьте их в `.env` в обоих местах (`POSTGRES_*` и `DATABASE_URL`, пароль в URL — percent-encoded) для запуска API вне Docker. В Compose адрес БД собирается автоматически из `POSTGRES_*`. Образ применяет `POSTGRES_*` только при создании пустого тома: после первого запуска смена значений требует `docker compose down -v`. Остановка — `docker compose stop`, повторный запуск — `docker compose up -d postgres` (данные сохраняются в томе), полный сброс данных — `docker compose down -v`. Контейнер API в Compose обращается к БД по имени сервиса `postgres` в сети `vkr`.
 
 ## Конфигурация
 
@@ -130,31 +130,42 @@ set -a; . ./.env; set +a    # загрузить DATABASE_URL в текущий 
 
 Если `NUXT_API_BASE_URL` пуст, SSR использует публичный адрес. Поэтому существующая настройка демо Amvera с одной `NUXT_PUBLIC_API_BASE_URL` продолжает работать. Внутренний адрес не передаётся в публичную runtime-конфигурацию. Переменные применяются при запуске, пересборка для смены адреса не нужна. Для dev-сервера шаблон `frontend/.env.example` можно скопировать в `frontend/.env`; production-сервер `.env` не читает, значения передаются через окружение процесса.
 
-`DATABASE_URL` — адрес БД для API и `manage_catalog.py`, формат `postgresql+psycopg://USER:PASSWORD@HOST:5432/vkr`; пароль с особыми символами кодируется percent-encoding. Для локального запуска значение вместе с логином и паролем PostgreSQL лежит в корневом `.env` (шаблон — `.env.example`); `docker compose` читает этот файл сам, а Gunicorn и `manage_catalog.py` — нет, поэтому переменные загружаются в оболочку командой `set -a; . ./.env; set +a`. В Amvera это секретная переменная проекта API. Для локальной демонстрации допустима SQLite: `sqlite:////абсолютный/путь/catalog.db`. Ключи платёжных сервисов и другие секреты относятся к целевому backend и не должны попадать в код браузера.
+`DATABASE_URL` — адрес БД для API и `manage_catalog.py`, формат `postgresql+psycopg://USER:PASSWORD@HOST:5432/vkr`; пароль с особыми символами кодируется percent-encoding. Для локального запуска значение вместе с логином и паролем PostgreSQL лежит в корневом `.env` (шаблон — `.env.example`). Compose читает этот файл автоматически. При запуске API на хосте передайте адрес через окружение терминала. В Amvera это секретная переменная проекта API. Для локальной демонстрации допустима SQLite: `sqlite:////абсолютный/путь/catalog.db`. Ключи платёжных сервисов и другие секреты относятся к целевому backend и не должны попадать в код браузера.
 
 Из Git исключены `.env` и `.env.*` (кроме шаблона `.env.example`), `backend/.venv`, `frontend/node_modules`, `.nuxt` и `.output`.
 
 ## Quick Start
 
-Два способа запуска: [запуск в локальном окружении](#запуск-в-локальном-окружении) — dev-серверы Nuxt и Gunicorn напрямую, PostgreSQL в отдельном контейнере; [полный стенд в Docker](#полный-стенд-в-docker) — все компоненты в контейнерах одной командой.
+Два способа запуска: [запуск в локальном окружении](#запуск-в-локальном-окружении) — Nuxt и Flask с Granian на хосте, PostgreSQL в отдельном контейнере; [полный стенд в Docker](#полный-стенд-в-docker) — все компоненты в контейнерах одной командой.
 
 ### Запуск в локальном окружении
 
-Шаг 0 — PostgreSQL. Выполните команды из подраздела «Настройки localhost»: `cp .env.example .env`, `docker compose up -d postgres`, дождитесь статуса `healthy` в `docker compose ps`. При повторном запуске достаточно `docker compose up -d postgres`.
+Сначала подготовьте `.env` и запустите PostgreSQL по [инструкции выше](#настройки-localhost). Откройте два терминала в корне проекта. Для API нужен Python 3.12 или новее. Выполните блок для своей ОС в первом терминале.
 
-Backend (терминал 1, из корня репозитория; команда `python3 --version` должна показывать 3.12 или новее). `DATABASE_URL` загружается из `.env` в этом же терминале при каждом запуске: переменные из другой сессии не сохраняются. Для другой БД вместо загрузки `.env` задайте `export DATABASE_URL=…` в формате из раздела «Конфигурация»:
+#### Windows (PowerShell)
+
+```powershell
+py -3 -m venv backend/.venv
+.\backend\.venv\Scripts\python.exe -m pip install -r backend/requirements.txt
+Remove-Item Env:DATABASE_URL -ErrorAction SilentlyContinue
+$env:DATABASE_URL = (docker compose config --environment | Select-String '^DATABASE_URL=').Line -replace '^DATABASE_URL=', ''
+Set-Location backend
+.\.venv\Scripts\python.exe manage_catalog.py prepare
+.\.venv\Scripts\python.exe -m granian --interface wsgi --host 127.0.0.1 --port 8080 --access-log app:app
+```
+
+#### Linux или macOS
 
 ```sh
 python3 -m venv backend/.venv
-backend/.venv/bin/pip install --upgrade pip
-backend/.venv/bin/pip install -r backend/requirements.txt
+backend/.venv/bin/python -m pip install -r backend/requirements.txt
 set -a; . ./.env; set +a
 cd backend
 .venv/bin/python manage_catalog.py prepare
-.venv/bin/gunicorn --bind 127.0.0.1:8080 --access-logfile - app:app
+.venv/bin/python -m granian --interface wsgi --host 127.0.0.1 --port 8080 --access-log app:app
 ```
 
-Frontend (терминал 2, из корня репозитория):
+При запуске из нового терминала снова загрузите `DATABASE_URL` перед командами из каталога `backend`. Для запуска Nuxt во втором терминале используйте следующие команды (в PowerShell — `npm.cmd` вместо `npm`):
 
 ```sh
 npm ci --prefix frontend
@@ -163,7 +174,7 @@ npm run dev --prefix frontend
 
 Открыть `http://127.0.0.1:3000`: `/catalog` рендерится на сервере и показывает 12 товаров из API. Остановить серверы — `Ctrl+C`.
 
-Проверка типов, сборка и тесты (из корня репозитория):
+Проверка типов, сборка и тесты frontend выполняются из корня репозитория:
 
 ```sh
 npm run typecheck --prefix frontend
@@ -171,13 +182,11 @@ npm run build --prefix frontend
 npm run test:ssr --prefix frontend
 ```
 
-```sh
-(cd backend && .venv/bin/python -m unittest discover -s tests -v)
-```
+Тесты API выполняются из каталога `backend` командой `.\.venv\Scripts\python.exe -m unittest discover -s tests -v` в PowerShell или `.venv/bin/python -m unittest discover -s tests -v` в Linux и macOS.
 
 ### Полный стенд в Docker
 
-Нужен Docker с Compose v2 и Linux-контейнерами; на Windows — Docker Desktop с интеграцией WSL 2. Сначала остановите запущенные отдельно Gunicorn и Nuxt, чтобы освободить порты `8080` и `3000`. Из корня репозитория:
+Нужен Docker с Compose v2 и Linux-контейнерами. На Windows запустите Docker Desktop и откройте PowerShell. Сначала остановите запущенные отдельно Granian и Nuxt, чтобы освободить порты `8080` и `3000`. Из корня репозитория:
 
 ```sh
 docker compose up --build
@@ -209,7 +218,7 @@ SSR обращается к `http://api:8080` внутри Docker, браузе�
 
 ### Миграции
 
-Из каталога `backend`: `python manage_catalog.py upgrade`. Alembic создаёт две таблицы каталога и служебную `alembic_version`. При запуске контейнера миграции применяются автоматически до старта Gunicorn.
+Из каталога `backend`: `python manage_catalog.py upgrade`. Alembic создаёт две таблицы каталога и служебную `alembic_version`. При запуске контейнера миграции применяются автоматически до старта Granian.
 
 ### Тестовые данные (seed)
 
@@ -223,7 +232,7 @@ SSR обращается к `http://api:8080` внутри Docker, браузе�
 
 ### Сброс состояния
 
-Локальная БД: из корня репозитория `docker compose down -v` удаляет контейнер и том с данными, затем `docker compose up -d postgres` создаёт пустую базу (дождитесь `healthy` в `docker compose ps`), а `backend/.venv/bin/python backend/manage_catalog.py prepare` из корня с загруженным `.env` заново применяет миграции и начальное заполнение.
+Локальная БД: из корня репозитория `docker compose down -v` удаляет контейнер и том с данными, затем `docker compose up -d postgres` создаёт пустую базу. Дождитесь статуса `healthy` в `docker compose ps` и повторите шаг подготовки базы (`manage_catalog.py prepare`) из [инструкции для вашей ОС](#запуск-в-локальном-окружении).
 
 ## API
 

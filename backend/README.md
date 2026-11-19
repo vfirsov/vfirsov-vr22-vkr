@@ -4,24 +4,11 @@
 
 ## Запуск
 
-Нужен Python 3.12+. PostgreSQL в систему устанавливать не требуется: локальная БД поднимается контейнером из корня репозитория командами `cp .env.example .env` и `docker compose up -d postgres` (подробности — в корневом README, «Настройки localhost»); `DATABASE_URL` для неё лежит в `.env`. Из корня репозитория:
+Нужен Python 3.12 или новее. Для локального запуска подготовьте корневой `.env`, запустите PostgreSQL через Compose и выполните команды backend для своей ОС в [корневом Quick Start](../README.md#запуск-в-локальном-окружении). Там приведены создание виртуального окружения, установка зависимостей, загрузка `DATABASE_URL`, миграции и запуск Flask через Granian на `127.0.0.1:8080`. В Windows API работает непосредственно из PowerShell.
 
-```sh
-python3 -m venv backend/.venv
-backend/.venv/bin/pip install -r backend/requirements.txt
-set -a; . ./.env; set +a
-cd backend
-.venv/bin/python manage_catalog.py prepare
-.venv/bin/gunicorn --bind 127.0.0.1:8080 --access-logfile - app:app
-```
+Для другой БД вместо загрузки `.env` задайте `DATABASE_URL` со своими параметрами. В Linux или macOS используйте `export DATABASE_URL='postgresql+psycopg://USER:PASSWORD@HOST:5432/vkr'`, в PowerShell — `$env:DATABASE_URL = 'postgresql+psycopg://USER:PASSWORD@HOST:5432/vkr'`. Пароль с особыми символами в URL должен быть percent-encoded. Секреты храните в окружении, а не в репозитории. Для локальной демонстрации можно использовать `sqlite:////absolute/path/catalog.db`; в Amvera используется PostgreSQL.
 
-Для другой БД вместо загрузки `.env` задайте `export DATABASE_URL='postgresql+psycopg://USER:PASSWORD@HOST:5432/vkr'` со своими параметрами. Пароль с особыми символами в URL должен быть percent-encoded. Секреты храните в окружении, а не в репозитории. Для локальной демонстрации можно использовать `export DATABASE_URL='sqlite:////absolute/path/catalog.db'`; в Amvera используется PostgreSQL.
-
-Тесты из каталога `backend` используют временную SQLite и не обращаются к рабочей БД:
-
-```sh
-.venv/bin/python -m unittest discover -s tests -v
-```
+Тесты используют временную SQLite. Выполните из каталога `backend` команду `.\.venv\Scripts\python.exe -m unittest discover -s tests -v` в PowerShell или `.venv/bin/python -m unittest discover -s tests -v` в Linux и macOS.
 
 ## Контракт
 
@@ -53,7 +40,7 @@ CORS: запросы с `Origin` из allowlist в `app.py` (домен демо
 
 ## Отдельный проект Amvera
 
-Содержимое **этого каталога**, включая подкаталог `migrations/`, загружается в корень отдельного проекта API. `amvera.yaml` использует `Dockerfile` в корне репозитория проекта API; локальный контекст сборки — `backend/`. При старте `start.sh` применяет миграции, заполняет пустой каталог и запускает Gunicorn на `8080`. Ошибка миграции или подключения останавливает запуск.
+Содержимое **этого каталога**, включая подкаталог `migrations/`, загружается в корень отдельного проекта API. `amvera.yaml` использует `Dockerfile` в корне репозитория проекта API; локальный контекст сборки — `backend/`. При старте `start.sh` применяет миграции, заполняет пустой каталог и запускает Granian в режиме WSGI на `8080`. Ошибка миграции или подключения останавливает запуск.
 
 В проекте API задайте `DATABASE_URL` как секретную переменную типа `RUN`, указав внутренний адрес PostgreSQL с окончанием `-rw`. API и PostgreSQL должны находиться в одном регионе. Приложение использует обычного пользователя БД; Superuser ему не нужен.
 
@@ -69,4 +56,4 @@ docker run --rm --network vkr -p 127.0.0.1:8080:8080 \
 
 В проекте Nuxt браузер использует `NUXT_PUBLIC_API_BASE_URL`, а SSR — `NUXT_API_BASE_URL` с возвратом к публичному адресу, если внутренний пуст. Оба адреса задаются без `/api/catalog`. Полный локальный стенд запускается командой `docker compose up --build`; Compose задаёт адреса автоматически. Доступ к БД настроен только в проекте API.
 
-Использование Gunicorn соответствует [документации Flask](https://flask.palletsprojects.com/en/stable/deploying/gunicorn/).
+Параметры WSGI-сервера описаны в [документации Granian](https://github.com/emmett-framework/granian).

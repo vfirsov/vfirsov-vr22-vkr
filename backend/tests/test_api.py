@@ -46,7 +46,7 @@ class CatalogApiTest(unittest.TestCase):
             for key in ("name", "category", "origin", "description"):
                 self.assertTrue(item[key])
         self.assertIn("Лун Цзин", response.get_data(as_text=True))
-        source = json.loads((Path(__file__).resolve().parents[1] / "catalog.json").read_text())
+        source = json.loads((Path(__file__).resolve().parents[1] / "catalog.json").read_text(encoding="utf-8"))
         self.assertEqual(data["items"], source)
 
     def test_catalog_reads_data_on_each_request(self):
