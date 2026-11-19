@@ -90,8 +90,7 @@ flowchart LR
 | Node.js | 24 LTS | dev-сервер, проверка типов, сборка и SSR-тест frontend |
 | npm | 11 и новее (поставляется с Node.js 24) | `npm ci` по `frontend/package-lock.json` |
 | Python | 3.12 и новее, с модулями `venv` и `pip` | API, миграции, начальное заполнение, тесты backend |
-| PostgreSQL | 17 | данные каталога |
-| Docker | Engine 20.10 и новее или Docker Desktop, с Docker Compose v2 (`docker compose`) | полный локальный стенд через Compose, сборка и запуск контейнеров |
+| Docker | Engine 27 и новее или Docker Desktop, с Docker Compose v2 (`docker compose`) | PostgreSQL и полный локальный стенд через Compose, сборка и запуск контейнеров |
 | Git | любая актуальная версия | клонирование, доставка изменений в репозитории проектов Amvera |
 
 ### Ограничения по ОС
@@ -105,8 +104,6 @@ flowchart LR
 | Windows | Полный стенд: Docker Desktop в режиме Linux-контейнеров, `docker compose up --build` из PowerShell или WSL 2. Запуск API вне контейнера — внутри WSL 2. |
 
 **Почему Windows требует дополнительной настройки.** Используемая программа запуска серверной части — Gunicorn — не работает непосредственно в Windows. Кроме того, команды инструкции написаны для терминалов Linux и macOS. Поэтому команды запуска API вне контейнера выполняют внутри WSL 2, например с Ubuntu. Команда полного стенда `docker compose up --build` работает также из PowerShell: Python и Gunicorn запускаются внутри Linux-контейнера. Для контейнерного варианта предусмотрен Docker Desktop с включённой интеграцией выбранного дистрибутива WSL. Запуск API непосредственно в Windows, без WSL и Linux-контейнера, потребует другой программы запуска серверной части и отдельной инструкции.
-
-Подробности и способы уменьшить перечисленные ограничения описаны в [предложениях по улучшению](docs/os-limitations-proposals.md).
 
 ### Настройки localhost
 

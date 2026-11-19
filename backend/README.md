@@ -4,7 +4,7 @@
 
 ## Запуск
 
-Нужен Python 3.12+ и работающий PostgreSQL. Локальная БД поднимается из корня репозитория командами `cp .env.example .env` и `docker compose up -d postgres` (подробности — в корневом README, «Настройки localhost»); `DATABASE_URL` для неё лежит в `.env`. Из корня репозитория:
+Нужен Python 3.12+. PostgreSQL в систему устанавливать не требуется: локальная БД поднимается контейнером из корня репозитория командами `cp .env.example .env` и `docker compose up -d postgres` (подробности — в корневом README, «Настройки localhost»); `DATABASE_URL` для неё лежит в `.env`. Из корня репозитория:
 
 ```sh
 python3 -m venv backend/.venv
